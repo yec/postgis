@@ -1,0 +1,22 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the postgis module.
+ *
+ */
+
+/**
+ * Implements hook_field_schema().
+ */
+function postgis_field_schema($field) {
+
+  return array(
+    'columns' => array(
+      'geom' => array(
+        'pgsql_type' => 'geometry',
+        'not null' => FALSE,
+      ),
+    ),
+  );
+}

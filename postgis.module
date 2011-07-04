@@ -1,0 +1,140 @@
+<?php
+
+/**
+ * @file
+ * Field for geospatial data using the Field API.
+ */
+
+require_once('includes/postgis.feeds.inc');
+require_once('includes/postgis.field.inc');
+require_once('includes/postgis.field.formatter.inc');
+require_once('includes/postgis.field.widget.inc');
+require_once('includes/postgis.openlayers.inc');
+
+define('POSTGIS_DEFAULT_SRID', 4326);
+
+/**
+ * parse WKT string created by openlayers_behavior_drawfeatures
+ */
+function postgis_parse_input($field, $instance, &$items) {
+
+  if ($instance['widget']['type'] == 'openlayers' && isset($items['wkt'])) {
+
+    $wkt = $items['wkt'];
+    $items = array();
+
+    switch ($field['settings']['geo_type']) {
+
+      case 'point':
+      case 'linestring':
+      case 'polygon':
+
+        // strip GEOMETRYCOLLECTION and convert to array
+        // TODO: check if GEOMETRYCOLLECTION exists
+        $wkt = explode('),', drupal_substr($wkt, 19, -1));
+
+        // restore last braces
+        foreach ($wkt as $index => $geo) {
+          if ($index < count($wkt)-1) {
+            $items[] = array('wkt' => $geo . ')');
+          }
+        }
+        
+        break;
+
+      case 'multipoint':
+      case 'multilinestring':
+      case 'multipolygon':
+        
+        // strip GEOMETRYCOLLECTION and convert to array
+        $wkt = explode('),', drupal_substr($wkt, 19, -1));
+
+        // strip single geometry type
+        $geoType = drupal_strtoupper($field['settings']['geo_type']);
+        foreach ($wkt as &$geo) {
+          $geo = drupal_substr($geo, drupal_strlen($geoType)-4);
+        }
+
+        // prepend multi geometry type
+        $items[] = array('wkt' => $geoType . '((' . implode('),(', $wkt) . ')');
+
+        break;
+
+      case 'geometrycollection':
+        $items[] = array('wkt' => $wkt);
+        break;
+    }
+  }
+}
+
+/**
+ * Convert PostGIS geometry to WKT, depending on display type
+ */
+function postgis_convert_output($geo_type, $display_type, $items) {
+
+  $wkts = array();
+
+  switch ($geo_type) {
+
+    case 'point':
+    case 'linestring':
+    case 'polygon':
+    case 'geometrycollection':
+      foreach ($items as $item) {
+        $wkts[] = postgis_geo2wkt($item['geom']);
+      }
+      break;
+
+    case 'multipoint':
+    case 'multilinestring':
+    case 'multipolygon':
+
+      if ($display_type == 'openlayers') {
+        // expand multi geometries to single geometries for openlayers
+        foreach ($items as $item) {
+          $rows = db_query(
+              "SELECT ST_AsText(geom.geom) AS wkt FROM ( SELECT (ST_Dump(:geo)).geom) AS geom;",
+              array(':geo' => $item['geom'])
+            )->fetchAll();
+          foreach ($rows as $row) {
+            $row = (array)$row;
+            $wkts[] = $row['wkt'];
+          }
+        }
+      }
+      else {
+        foreach ($items as $item) {
+          $wkts[] = postgis_geo2wkt($item['geom']);
+        }
+      }
+      break;
+  }
+
+  // prepend GEOMETRYCOLLECTION for openlayers
+  if ($display_type == 'openlayers' &&
+      $geo_type != 'geometrycollection') {
+    return 'GEOMETRYCOLLECTION(' . implode(',', $wkts) . ')';
+  }
+  else {
+    return implode(',', $wkts);
+  }
+}
+
+/**
+ * Implements hook_ctools_plugin_api().
+ */
+function postgis_ctools_plugin_api($module, $api) {
+  return array('version' => 1);
+}
+
+function postgis_geo2wkt($geo) {
+  return db_query("SELECT ST_AsText(:geo);", array(':geo' => $geo))->fetchField();
+}
+
+function postgis_kml2geo($kml, $srid = POSTGIS_DEFAULT_SRID) {
+  return db_query("SELECT ST_GeomFromKML(:kml);", array(':kml' => $kml))->fetchField();
+}
+
+function postgis_wkt2geo($wkt, $srid = POSTGIS_DEFAULT_SRID) {
+  return db_query("SELECT ST_GeomFromText(:wkt, :srid);", array(':wkt' => $wkt, ':srid' => $srid))->fetchField();
+}

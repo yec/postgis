@@ -1,1 +1,12 @@
 name = PostGIS
+description = Provides a field for geospatial data using the Field API. Requires PostGIS 1.5 or later.
+core = 7.x
+
+files[] = postgis.module
+files[] = postgis.install
+files[] = postgis.test
+files[] = includes/postgis.feeds.inc
+files[] = includes/postgis.field.inc
+files[] = includes/postgis.field.formatter.inc
+files[] = includes/postgis.field.widget.inc
+files[] = includes/postgis.openlayers.inc
