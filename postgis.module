@@ -29,9 +29,13 @@ function postgis_parse_input($field, $instance, &$items) {
       case 'linestring':
       case 'polygon':
 
-        // strip GEOMETRYCOLLECTION and convert to array
-        // TODO: check if GEOMETRYCOLLECTION exists
-        $wkt = explode('),', drupal_substr($wkt, 19, -1));
+        // strip GEOMETRYCOLLECTION if exists
+        if (strpos($wkt, 'GEOMETRYCOLLECTION') === 0) {
+          $wkt = drupal_substr($wkt, 19, -1);
+        }
+
+        // convert to array
+        $wkt = explode('),', $wkt);
 
         // restore last braces
         foreach ($wkt as $index => $geo) {
@@ -46,8 +50,13 @@ function postgis_parse_input($field, $instance, &$items) {
       case 'multilinestring':
       case 'multipolygon':
         
-        // strip GEOMETRYCOLLECTION and convert to array
-        $wkt = explode('),', drupal_substr($wkt, 19, -1));
+        // strip GEOMETRYCOLLECTION if exists
+        if (strpos($wkt, 'GEOMETRYCOLLECTION') === 0) {
+          $wkt = drupal_substr($wkt, 19, -1);
+        }
+
+        // convert to array
+        $wkt = explode('),', $wkt);
 
         // strip single geometry type
         $geoType = drupal_strtoupper($field['settings']['geo_type']);
