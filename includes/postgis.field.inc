@@ -73,6 +73,7 @@ function postgis_field_validate($entity_type, $entity, $field, $instance, $langc
         $result = db_query("SELECT ST_GeometryType(:wkt), ST_IsValid(:wkt), ST_IsValidReason(:wkt) as reason",
             array(':wkt' => $item['wkt']))->fetchAssoc();
 
+        // display reason if geometry is not valid
         if (!$result['st_isvalid']) {
           form_set_error($field['field_name'], t('Not a valid geometry: %reason.',
             array('%reason' => $result['reason'])));
@@ -80,6 +81,7 @@ function postgis_field_validate($entity_type, $entity, $field, $instance, $langc
 
         $result_geo_type = drupal_strtolower(drupal_substr($result['st_geometrytype'], 3));
 
+        // display error if geometry type is unexpected
         if ($result_geo_type != $field['settings']['geo_type']) {
           form_set_error($field['field_name'], t('Wrong geometry type. Got %result, was expecting %type.',
             array('%result' => $result_geo_type, '%type' => $field['settings']['geo_type'])));
