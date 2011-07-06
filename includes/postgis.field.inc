@@ -70,12 +70,12 @@ function postgis_field_validate($entity_type, $entity, $field, $instance, $langc
     if (!postgis_field_is_empty($item, $field)) {
 
       try {
-        $result = db_query("SELECT ST_GeometryType(:wkt), ST_IsValid(:wkt)", array(':wkt' => $item['wkt']))->fetchAssoc();
+        $result = db_query("SELECT ST_GeometryType(:wkt), ST_IsValid(:wkt), ST_IsValidReason(:wkt) as reason",
+            array(':wkt' => $item['wkt']))->fetchAssoc();
 
         if (!$result['st_isvalid']) {
-          form_set_error($field['field_name'], t('Not a valid geometry.'));
-
-          // TODO: check for PostGIS 1.5, if available do ST_IsValidReasion
+          form_set_error($field['field_name'], t('Not a valid geometry: %reason.',
+            array('%reason' => $result['reason'])));
         }
 
         $result_geo_type = drupal_strtolower(drupal_substr($result['st_geometrytype'], 3));
