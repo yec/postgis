@@ -131,6 +131,51 @@ function postgis_field_presave($entity_type, $entity, $field, $instance, $langco
 }
 
 /**
+ * Implements hook_field_insert().
+ */
+function postgis_field_insert($entity_type, $entity, $field, $instance, $langcode, &$items) {
+  postgis_field_diff($entity, $field);
+}
+
+/**
+ * Implements hook_field_update().
+ */
+function postgis_field_update($entity_type, $entity, $field, $instance, $langcode, &$items) {
+  postgis_field_diff($entity, $field);
+}
+
+/**
+ * Implements hook_field_delete().
+ */
+function postgis_field_delete($entity_type, $entity, $field, $instance, $langcode, &$items) {
+  postgis_field_diff($entity, $field);
+}
+
+/**
+ * Calculate bounding box of changed area
+ * and invoke hook_postgis_field_diff.
+ *
+ * @param <type> $entity
+ * @param <type> $field
+ */
+function postgis_field_diff($entity, $field) {
+
+  $fieldNew = $entity->$field['field_name'];
+
+  $diff = db_query("SELECT Box2D( ST_Transform( SetSRID( ST_Extent(:geo), :epsg), :display_epsg));",
+    array(
+      ':display_epsg' => $field['settings']['display_srid'],
+      ':epsg'         => $field['settings']['srid'],
+      ':geo'          => $fieldNew['und'][0]['geom'],
+    ))->fetchField();
+
+  $bbox = preg_split('/[\, ]/', substr($diff, 4, -1));
+
+  // let other modules handle diffs
+  module_invoke_all('postgis_field_diff', $field, $bbox);
+}
+
+/**
  * Implements hook_field_update_field().
  *
  * Keep table "geometry_columns" up to date.
