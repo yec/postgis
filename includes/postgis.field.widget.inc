@@ -22,10 +22,13 @@ function postgis_field_widget_info() {
     $widgets['openlayers'] = array(
       'label' => t('OpenLayers Map'),
       'field types' => array('postgis'),
-      'settings' => array('map' => 'postgis_widget_map'),
+      'settings' => array(
+        'map'      => 'postgis_widget_map',
+        'behavior' => 'openlayers_behavior_drawfeatures',
+      ),
       'behaviors' => array(
         'multiple values' => FIELD_BEHAVIOR_CUSTOM,
-        'default value' => FIELD_BEHAVIOR_NONE,
+        'default value'   => FIELD_BEHAVIOR_NONE,
       ),
     );
   }
@@ -44,25 +47,30 @@ function postgis_field_widget_settings_form($field, $instance) {
 
   if ($widget['type'] == 'openlayers') {
 
-    // OpenLayers maps filtered to those which have the draw features behavior
-    $maps = openlayers_maps();
-    $maps_options = array();
-    foreach ($maps as $map) {
-      if (array_key_exists('openlayers_behavior_drawfeatures', $map->data['behaviors'])) {
-        $maps_options[$map->name] = $map->title;
-      }
+    $maps = openlayers_map_options();
+
+    $behaviors = openlayers_behaviors();
+    foreach($behaviors as $index => $behavior) {
+      $behaviors[$index] = $behavior['title'];
     }
 
-    if (empty($maps)) {
-      form_set_error('map', 'Error: You have no compatible OpenLayers maps. Make sure that at least one map has the draw features behavior enabled.');
-    }
+    $map      = isset($settings['map']) ? $settings['map'] : 'postgis_widget_map';
+    $behavior = isset($settings['behavior']) ? $settings['behavior'] : 'openlayers_behavior_drawfeatures';
 
     $form['map'] = array(
       '#type' => 'select',
       '#title' => t('OpenLayers Map'),
-      '#default_value' => isset($settings['map']) ? $settings['map'] : 'postgis_widget_map',
-      '#options' => $maps_options,
-      '#description' => t('Select which OpenLayers map you would like to use. Only maps which have the draw features behavior behavior may be selected.'),
+      '#default_value' => $map,
+      '#options' => $maps,
+      '#description' => t('Select which OpenLayers map you would like to use.'),
+    );
+
+    $form['behavior'] = array(
+      '#type' => 'select',
+      '#title' => t('OpenLayers Behavior'),
+      '#default_value' => $behavior,
+      '#options' => $behaviors,
+      '#description' => t('Select an OpenLayers behavior which handles drawing of features.'),
     );
 
   }
@@ -109,12 +117,16 @@ function postgis_field_widget_form(&$form, &$form_state, $field, $instance, $lan
         $types = array();
     }
 
-    $map = openlayers_map_load($settings['map']);
-    $map->data['behaviors']['openlayers_behavior_drawfeatures'] = array(
-      'element_id' => $field['field_name'] . '_wkt',
+    $map      = openlayers_map_load($settings['map']);
+    $behavior = isset($map->data['behaviors'][$settings['behavior']]) ?
+        $map->data['behaviors'][$settings['behavior']] : array();
+
+    $map->data['behaviors'][$settings['behavior']] = array_merge($behavior, array(
+      'element_id'    => $field['field_name'] . '_wkt',
+      'srid'          => $field['settings']['srid'],
       'feature_types' => $types,
       'feature_limit' => $field['cardinality'],
-    );
+    ));
 
     $element['map'] = array(
       '#markup' => '<div class="form-item" style="display:block">' . openlayers_render_map($map->data) . '</div>',
