@@ -166,7 +166,7 @@ function postgis_field_diff($entity, $field) {
     array(
       ':display_epsg' => $field['settings']['display_srid'],
       ':epsg'         => $field['settings']['srid'],
-      ':geo'          => $fieldNew['und'][0]['geom'],
+      ':geo'          => $fieldNew[$entity->language][0]['geom'],
     ))->fetchField();
 
   $bbox = preg_split('/[\, ]/', substr($diff, 4, -1));
