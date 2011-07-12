@@ -2,8 +2,7 @@
 
 /**
  * @file
- * Field for geospatial data using the Field API.
- * Implements field formatter.
+ * Field for geospatial data using the Field API. Implements field formatter.
  */
 
 /**
@@ -88,27 +87,34 @@ function postgis_field_formatter_view($entity_type, $entity, $field, $instance, 
 
   $element = array();
 
+  $set = new postgis_geometry_set($field['settings']['type'], $field['settings']['srid']);
+  $set->fromGeometry($items);
+
   switch ($display['type']) {
 
     case 'wkt':
-      foreach ($items as $delta => $item) {
-        $element[$delta]['#markup'] = postgis_geo2wkt($item['geom']);
+      foreach ($set->getItems() as $index => $item) {
+        $element[$index]['#markup'] = $item['wkt'];
       }
       break;
 
     case 'openlayers':
 
-      $features = array();
-      $features[] = array(
-        'wkt' => postgis_convert_output($field['settings']['geo_type'], $display['type'], $items),
-        'projection' => $field['settings']['srid']
-      );
-
       $map_name = $display['settings']['map'] ? $display['settings']['map'] : 'postgis_formatter_map';
       $map = openlayers_map_load($map_name);
       $map = openlayers_build_map($map->data);
 
-      $map['layers']['postgis_formatter_layer']['features'] = $features;
+      $wkt = array();
+      foreach ($set->getItems() as $item) {
+        $wkt[] = $item['postgis']->getText();
+      }
+
+      // TODO: handle multi geometries
+
+      $map['layers']['postgis_formatter_layer']['features'] = array(array(
+        'wkt' => 'GEOMETRYCOLLECTION(' . implode(',', $wkt) . ')',
+        'projection' => $field['settings']['srid']
+      ));
 
       // render map if no errors found
       if (empty($map['errors'])) {

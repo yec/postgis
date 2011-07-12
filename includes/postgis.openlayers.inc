@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Provides OpenLayers maps and layers for widgets and formatters.
+ * Provides OpenLayers maps and layers for widget and formatter.
  */
 
 /**

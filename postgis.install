@@ -2,8 +2,7 @@
 
 /**
  * @file
- * Install, update and uninstall functions for the postgis module.
- *
+ * Install, update and uninstall functions for the PostGIS module.
  */
 
 /**
@@ -13,7 +12,7 @@ function postgis_field_schema($field) {
 
   return array(
     'columns' => array(
-      'geom' => array(
+      'geometry' => array(
         'pgsql_type' => 'geometry',
         'not null' => FALSE,
       ),

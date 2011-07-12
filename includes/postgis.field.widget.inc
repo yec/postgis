@@ -2,8 +2,7 @@
 
 /**
  * @file
- * Field for geospatial data using the Field API.
- * Implements field widgets.
+ * Field for geospatial data using the Field API. Implements field widget.
  */
 
 /**
@@ -27,7 +26,7 @@ function postgis_field_widget_info() {
         'behavior' => 'openlayers_behavior_drawfeatures',
       ),
       'behaviors' => array(
-        'multiple values' => FIELD_BEHAVIOR_CUSTOM,
+//        'multiple values' => FIELD_BEHAVIOR_CUSTOM,
         'default value'   => FIELD_BEHAVIOR_NONE,
       ),
     );
@@ -40,22 +39,15 @@ function postgis_field_widget_info() {
  * Implements hook_field_widget_settings_form().
  */
 function postgis_field_widget_settings_form($field, $instance) {
+
   $widget = $instance['widget'];
   $settings = $widget['settings'];
-
   $form = array();
 
   if ($widget['type'] == 'openlayers') {
 
     $maps = openlayers_map_options();
-
-    $behaviors = openlayers_behaviors();
-    foreach($behaviors as $index => $behavior) {
-      $behaviors[$index] = $behavior['title'];
-    }
-
-    $map      = isset($settings['map']) ? $settings['map'] : 'postgis_widget_map';
-    $behavior = isset($settings['behavior']) ? $settings['behavior'] : 'openlayers_behavior_drawfeatures';
+    $map = isset($settings['map']) ? $settings['map'] : 'postgis_widget_map';
 
     $form['map'] = array(
       '#type' => 'select',
@@ -64,6 +56,12 @@ function postgis_field_widget_settings_form($field, $instance) {
       '#options' => $maps,
       '#description' => t('Select which OpenLayers map you would like to use.'),
     );
+
+    $behaviors = openlayers_behaviors();
+    foreach ($behaviors as $index => $behavior) {
+      $behaviors[$index] = $behavior['title'];
+    }
+    $behavior = isset($settings['behavior']) ? $settings['behavior'] : 'openlayers_behavior_drawfeatures';
 
     $form['behavior'] = array(
       '#type' => 'select',
@@ -83,12 +81,15 @@ function postgis_field_widget_settings_form($field, $instance) {
  * Implements hook_field_widget_form().
  */
 function postgis_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
+
   $widget = $instance['widget'];
   $settings = $widget['settings'];
 
   $value = '';
-  if (isset($items[0]['geom'])) {
-    $value = postgis_convert_output($field['settings']['geo_type'], $instance['widget']['type'], $items);
+  if (isset($items[$delta]['geometry'])) {
+    $geometry = new postgis_geometry($field['settings']['type'], $field['settings']['srid']);
+    $geometry->fromGeometry($items[$delta]['geometry']);
+    $value = $geometry->getText();
   }
 
   $element += array(
@@ -97,7 +98,7 @@ function postgis_field_widget_form(&$form, &$form_state, $field, $instance, $lan
 
   if (module_exists('openlayers') && $instance['widget']['type'] == 'openlayers') {
 
-    switch ($field['settings']['geo_type']) {
+    switch ($field['settings']['type']) {
       case 'point':
       case 'multipoint':
         $types = array('point');
@@ -117,15 +118,15 @@ function postgis_field_widget_form(&$form, &$form_state, $field, $instance, $lan
         $types = array();
     }
 
-    $map      = openlayers_map_load($settings['map']);
+    $map = openlayers_map_load($settings['map']);
     $behavior = isset($map->data['behaviors'][$settings['behavior']]) ?
         $map->data['behaviors'][$settings['behavior']] : array();
 
     $map->data['behaviors'][$settings['behavior']] = array_merge($behavior, array(
-      'element_id'    => $field['field_name'] . '_wkt',
+      'element_id'    => $field['field_name'] . '_wkt' . $delta,
       'srid'          => $field['settings']['srid'],
       'feature_types' => $types,
-      'feature_limit' => $field['cardinality'],
+      'feature_limit' => strpos('multi', $field['settings']['type']) === 0 ? $field['cardinality'] : 1,
     ));
 
     $element['map'] = array(
@@ -134,7 +135,7 @@ function postgis_field_widget_form(&$form, &$form_state, $field, $instance, $lan
 
     $element['wkt'] = array(
       '#type' => 'textarea',
-      '#attributes' => array('id' => $field['field_name'] . '_wkt', 'style' => 'display: none;'),
+      '#attributes' => array('id' => $field['field_name'] . '_wkt' . $delta, 'style' => 'display: none;'),
       '#default_value' => $value,
       '#required' => $element['#required'],
       '#resizable' => FALSE,
