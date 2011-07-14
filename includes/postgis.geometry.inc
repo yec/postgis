@@ -114,9 +114,28 @@ class postgis_geometry {
    */
   function fromText($wkt) {
 
+    // handle OpenLayers input
     if (strpos($wkt, 'GEOMETRYCOLLECTION') === 0 &&
         $this->type != 'GEOMETRYCOLLECTION') {
+      // strip GEOMETRYCOLLECTION
       $wkt = drupal_substr($wkt, 19, -1);
+
+      // handle MULTI geometries
+      if (stripos($wkt, $this->type) === false &&
+          stripos($this->type, 'MULTI') === 0) {
+
+        // prepare for processing
+        $wkt = explode('),', $wkt);
+
+        // strip single geometry type
+        foreach ($wkt as &$geo) {
+          $geo = drupal_substr($geo, drupal_strlen($this->type)-4);
+        }
+
+        // prepend multi geometry type
+        $wkt = $this->type . '((' . implode('),(', $wkt) . ')';
+
+      }
     }
     $this->wkt = $wkt;
     $this->geometry = NULL;
