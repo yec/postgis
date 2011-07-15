@@ -24,7 +24,8 @@ function postgis_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_
 
 function postgis_feeds_set_target($source, $entity, $target, $value) {
 
-  $geo = db_query("SELECT ST_CollectionExtract(ST_GeomFromKML(:kml),2);", array(':kml' => $value))->fetchField();
+  $geo = db_query("SELECT ST_AsText(ST_CollectionExtract(ST_GeomFromKML(:kml),2));",
+          array(':kml' => $value))->fetchField();
 
-  $entity->{$target}['und'][0]['postgis'] = $geo;
+  $entity->{$target}[$entity->language][0]['wkt'] = $geo;
 }

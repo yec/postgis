@@ -5,6 +5,10 @@
  * PostGIS geometry classes.
  */
 
+class postgis_geometry_exception extends Exception
+{
+}
+
 /**
  * Provides a set of postgis_geometry with same geometry type and projection.
  */
@@ -42,6 +46,63 @@ class postgis_geometry_set {
   }
 
   /**
+   * Count geometries.
+   *
+   * @return int
+   */
+  function count() {
+    return count($this->geometries);
+  }
+
+  /**
+   * Add a geometrie to geometries.
+   *
+   * @param postgis_geometry $geometry
+   */
+  function add($geometry) {
+
+    if (get_class($geometry) !== 'postgis_geometry') {
+      throw new postgis_geometry_exception('not postgis_geometry');
+    }
+
+    $this->geometries[] = $geometry;
+  }
+
+  /**
+   * Get geometry at a given index.
+   *
+   * @param int $index
+   * @return postgis_geometry
+   */
+  function get($index) {
+    return $this->geometries[$index];
+  }
+
+  /**
+   * Create a new set containing the diffrence of each geometry.
+   *
+   * @param postgis_geometry_set $set
+   * @return postgis_geometry_set
+   */
+  function diff($set) {
+
+    if (get_class($set) !== 'postgis_geometry_set') {
+      throw new postgis_geometry_exception('not postgis_geometry_set');
+    }
+
+    $diff_set = new postgis_geometry_set($this->type, $this->srid, $this->cardinality);
+
+    foreach ($this->geometries as $index => $geometry) {
+      if ($index < $set->count()) {
+        $geometry = $geometry->diff($set->get($index));
+      }
+      $diff_set->add($geometry);
+    }
+
+    return $diff_set;
+  }
+
+  /**
    * Add geometries from text.
    *
    * @param array $items Geometries stored with key "wkt".
@@ -67,6 +128,23 @@ class postgis_geometry_set {
       $geometry->fromGeometry($item['geometry']);
       $this->geometries[] = $geometry;
     }
+  }
+
+  /**
+   * Calculate bounding box of all geometries.
+   *
+   * @return <type>
+   */
+  function getBox() {
+
+    $items = array();
+    foreach ($this->geometries as $index => $geometry) {
+      $items[':geo'.$index] = $geometry->getText();
+    }
+    $box = db_query("SELECT Box2D(ST_Union(".implode('::geometry , ', array_keys($items))."::geometry))",
+        $items)->fetchField();
+
+    return $box;
   }
 
   /**
@@ -115,28 +193,13 @@ class postgis_geometry {
   function fromText($wkt) {
 
     // handle OpenLayers input
-    if (strpos($wkt, 'GEOMETRYCOLLECTION') === 0 &&
+    if (stripos($wkt, 'GEOMETRYCOLLECTION') === 0 &&
         $this->type != 'GEOMETRYCOLLECTION') {
-      // strip GEOMETRYCOLLECTION
-      $wkt = drupal_substr($wkt, 19, -1);
 
-      // handle MULTI geometries
-      if (stripos($wkt, $this->type) === false &&
-          stripos($this->type, 'MULTI') === 0) {
-
-        // prepare for processing
-        $wkt = explode('),', $wkt);
-
-        // strip single geometry type
-        foreach ($wkt as &$geo) {
-          $geo = drupal_substr($geo, drupal_strlen($this->type)-4);
-        }
-
-        // prepend multi geometry type
-        $wkt = $this->type . '((' . implode('),(', $wkt) . ')';
-
-      }
+      $wkt = db_query("SELECT ST_AsText(ST_Union('GEOMETRYCOLLECTION(EMPTY)', :wkt))",
+          array(':wkt' => $wkt))->fetchField();
     }
+
     $this->wkt = $wkt;
     $this->geometry = NULL;
   }
@@ -175,6 +238,31 @@ class postgis_geometry {
         array(':wkt' => $this->wkt, ':srid' => $this->srid))->fetchField();
     }
     return $this->geometry;
+  }
+
+  /**
+   * Calculate diffrence to a given geometry.
+   *
+   * @param postgis_geometry $geometry
+   * @return postgis_geometry
+   */
+  function diff($geometry) {
+
+    if (get_class($geometry) !== 'postgis_geometry') {
+      throw new postgis_geometry_exception('not postgis_geometry');
+    }
+
+    $geoA = $this->getGeometry();
+    $geoB = $geometry->getGeometry();
+
+    $geoDiff = db_query("SELECT ST_Union(ST_Difference(:geoA, :geoB),ST_Difference(:geoB, :geoA))",
+        array(':geoA' => $geoA, ':geoB' => $geoB))->fetchField();
+    $geoType = db_query("SELECT GeometryType(:geo)", array(':geo' => $geoDiff))->fetchField();
+
+    $diff = new postgis_geometry($geoType, $this->srid);
+    $diff->fromGeometry($geoDiff);
+
+    return $diff;
   }
 
   /**

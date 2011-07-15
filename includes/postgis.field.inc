@@ -129,22 +129,31 @@ function postgis_field_delete($entity_type, $entity, $field, $instance, $langcod
  */
 function postgis_field_diff($entity, $field, $items) {
 
+  if (!empty($items)) {
+    $new = new postgis_geometry_set($field['settings']['type'], $field['settings']['srid']);
+    $new->fromGeometry($items);
 
-  // TODO: use http://postgis.refractions.net/docs/ST_Difference.html
+    $ori = new postgis_geometry_set($field['settings']['type'], $field['settings']['srid']);
+//    $ori_field = $entity->original->$field['field_name'];
+    $ori->fromGeometry($entity->original->{$field['field_name']}[$entity->language]);
 
-  $field_new = $entity->$field['field_name'];
+    $diff = $new->diff($ori);
 
-  $diff = db_query("SELECT Box2D( ST_Transform( SetSRID( ST_Extent(:geo), :epsg), :display_epsg));",
-    array(
-      ':display_epsg' => $field['settings']['display_srid'],
-      ':epsg'         => $field['settings']['srid'],
-      ':geo'          => $field_new[$entity->language][0]['geometry'],
-    ))->fetchField();
+    // let other modules handle diffs
+    module_invoke_all('postgis_field_diff', $field, $diff);
+  }
 
-  $bbox = preg_split('/[\, ]/', substr($diff, 4, -1));
+//  $diff = db_query("SELECT Box2D( ST_Transform( SetSRID( ST_Extent(:geo), :epsg), :display_epsg));",
+//    array(
+//      ':display_epsg' => $field['settings']['display_srid'],
+//      ':epsg'         => $field['settings']['srid'],
+//      ':geo'          => $field_new[$entity->language][0]['geometry'],
+//    ))->fetchField();
+//
+//  $bbox = preg_split('/[\, ]/', substr($diff, 4, -1));
 
   // let other modules handle diffs
-  module_invoke_all('postgis_field_diff', $field, $bbox);
+//  module_invoke_all('postgis_field_diff', $field, $bbox);
 }
 
 /**
