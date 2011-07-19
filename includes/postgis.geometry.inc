@@ -115,6 +115,10 @@ class postgis_geometry_set {
    */
   function fromText($wkt) {
 
+    if (empty($wkt)) {
+      return;
+    }
+
     try {
       // add GEOMETRYCOLLECTION if missing for OpenLayers compability
       if (stripos($wkt, 'GEOMETRYCOLLECTION') !== 0) {

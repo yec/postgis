@@ -69,8 +69,11 @@ function postgis_field_settings_form($field, $instance, $has_data) {
  */
 function postgis_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, &$errors) {
 
+  // catch empty input
+  $wkt = isset($items['wkt']) ? $items['wkt'] : '';
+
   $set = new postgis_geometry_set($field['settings']['type'], $field['settings']['srid'], $field['cardinality']);
-  $set->fromText($items['wkt']);
+  $set->fromText($wkt);
 
   $set->validate($field['field_name']);
 }
