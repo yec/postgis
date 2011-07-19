@@ -69,10 +69,10 @@ function postgis_field_settings_form($field, $instance, $has_data) {
  */
 function postgis_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, &$errors) {
 
-  $set = new postgis_geometry_set($field['settings']['type'], $field['settings']['srid']);
-  $set->fromText($items);
-  $set->validate($field['field_name']);
+  $set = new postgis_geometry_set($field['settings']['type'], $field['settings']['srid'], $field['cardinality']);
+  $set->fromText($items['wkt']);
 
+  $set->validate($field['field_name']);
 }
 
 /**
@@ -80,12 +80,10 @@ function postgis_field_validate($entity_type, $entity, $field, $instance, $langc
  */
 function postgis_field_is_empty($item, $field) {
 
-  if (!isset($item['postgis'])) {
-    $item['postgis'] = new postgis_geometry($field['settings']['type'], $field['settings']['srid']);
-    $item['postgis']->fromText($item['wkt']);
-  }
+  $set = new postgis_geometry_set($field['settings']['type'], $field['settings']['srid']);
+  $set->fromText($item);
 
-  return $item['postgis']->isEmpty();
+  return $set->isEmpty();
 }
 
 
@@ -94,8 +92,12 @@ function postgis_field_is_empty($item, $field) {
  */
 function postgis_field_presave($entity_type, $entity, $field, $instance, $langcode, &$items) {
 
+  // catch empty input
+  $wkt = count($items) > 0 ? $items[0] : '';
+
   $set = new postgis_geometry_set($field['settings']['type'], $field['settings']['srid']);
-  $set->fromText($items);
+  $set->fromText($wkt);
+
   $items = $set->getItems();
 }
 
@@ -134,7 +136,6 @@ function postgis_field_diff($entity, $field, $items) {
     $new->fromGeometry($items);
 
     $ori = new postgis_geometry_set($field['settings']['type'], $field['settings']['srid']);
-//    $ori_field = $entity->original->$field['field_name'];
     $ori->fromGeometry($entity->original->{$field['field_name']}[$entity->language]);
 
     $diff = $new->diff($ori);
@@ -142,18 +143,6 @@ function postgis_field_diff($entity, $field, $items) {
     // let other modules handle diffs
     module_invoke_all('postgis_field_diff', $field, $diff);
   }
-
-//  $diff = db_query("SELECT Box2D( ST_Transform( SetSRID( ST_Extent(:geo), :epsg), :display_epsg));",
-//    array(
-//      ':display_epsg' => $field['settings']['display_srid'],
-//      ':epsg'         => $field['settings']['srid'],
-//      ':geo'          => $field_new[$entity->language][0]['geometry'],
-//    ))->fetchField();
-//
-//  $bbox = preg_split('/[\, ]/', substr($diff, 4, -1));
-
-  // let other modules handle diffs
-//  module_invoke_all('postgis_field_diff', $field, $bbox);
 }
 
 /**

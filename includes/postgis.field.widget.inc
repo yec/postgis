@@ -14,6 +14,10 @@ function postgis_field_widget_info() {
     'wkt' => array(
       'label' => t('Textfield'),
       'field types' => array('postgis'),
+      'behaviors' => array(
+        'multiple values' => FIELD_BEHAVIOR_CUSTOM,
+        'default value'   => FIELD_BEHAVIOR_NONE,
+      ),
     ),
   );
 
@@ -26,7 +30,7 @@ function postgis_field_widget_info() {
         'behavior' => 'openlayers_behavior_drawfeatures',
       ),
       'behaviors' => array(
-//        'multiple values' => FIELD_BEHAVIOR_CUSTOM,
+        'multiple values' => FIELD_BEHAVIOR_CUSTOM,
         'default value'   => FIELD_BEHAVIOR_NONE,
       ),
     );
@@ -85,12 +89,9 @@ function postgis_field_widget_form(&$form, &$form_state, $field, $instance, $lan
   $widget = $instance['widget'];
   $settings = $widget['settings'];
 
-  $value = '';
-  if (isset($items[$delta]['geometry'])) {
-    $geometry = new postgis_geometry($field['settings']['type'], $field['settings']['srid']);
-    $geometry->fromGeometry($items[$delta]['geometry']);
-    $value = $geometry->getText();
-  }
+  $set = new postgis_geometry_set($field['settings']['type'], $field['settings']['srid']);
+  $set->fromGeometry($items);
+  $value = $set->getText();
 
   $element += array(
     '#delta' => $delta,
@@ -126,7 +127,7 @@ function postgis_field_widget_form(&$form, &$form_state, $field, $instance, $lan
       'element_id'    => $field['field_name'] . '_wkt' . $delta,
       'srid'          => $field['settings']['srid'],
       'feature_types' => $types,
-      'feature_limit' => strpos('multi', $field['settings']['type']) === 0 ? $field['cardinality'] : 1,
+      'feature_limit' => $field['cardinality'],
     ));
 
     $element['map'] = array(
@@ -136,7 +137,7 @@ function postgis_field_widget_form(&$form, &$form_state, $field, $instance, $lan
     $element['wkt'] = array(
       '#type' => 'textarea',
       '#attributes' => array('id' => $field['field_name'] . '_wkt' . $delta, 'style' => 'display: none;'),
-      '#default_value' => $value,
+      '#default_value' => 'GEOMETRYCOLLECTION('.$value.')',
       '#required' => $element['#required'],
       '#resizable' => FALSE,
     );

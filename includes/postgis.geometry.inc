@@ -15,7 +15,7 @@ class postgis_geometry_exception extends Exception
 class postgis_geometry_set {
 
   private $geometries = array();
-  private $cardinality, $type, $srid;
+  private $cardinality, $type, $srid, $multi;
 
   /**
    * Create an empty geometry set.
@@ -27,6 +27,7 @@ class postgis_geometry_set {
   function __construct($type, $srid, $cardinality = NULL) {
     $this->type = $type;
     $this->srid = $srid;
+    $this->multi = stripos($type, 'multi') === 0;
     $this->cardinality = $cardinality;
   }
 
@@ -36,6 +37,11 @@ class postgis_geometry_set {
    * @param String $field_name Name of geometry form field.
    */
   function validate($field_name) {
+
+    if ($this->count() > $this->cardinality) {
+      form_set_error(check_plain($field_name), t('To many geometries. Got @result, was expecting @cardinality.',
+          array('@result' => $this->count(), '@cardinality' => $this->cardinality)));
+    }
 
     foreach ($this->geometries as $geometry) {
       $result = $geometry->validate();
@@ -62,7 +68,7 @@ class postgis_geometry_set {
   function add($geometry) {
 
     if (get_class($geometry) !== 'postgis_geometry') {
-      throw new postgis_geometry_exception('not postgis_geometry');
+      throw new postgis_geometry_exception('not a postgis_geometry');
     }
 
     $this->geometries[] = $geometry;
@@ -87,7 +93,7 @@ class postgis_geometry_set {
   function diff($set) {
 
     if (get_class($set) !== 'postgis_geometry_set') {
-      throw new postgis_geometry_exception('not postgis_geometry_set');
+      throw new postgis_geometry_exception('not a postgis_geometry_set');
     }
 
     $diff_set = new postgis_geometry_set($this->type, $this->srid, $this->cardinality);
@@ -105,13 +111,45 @@ class postgis_geometry_set {
   /**
    * Add geometries from text.
    *
-   * @param array $items Geometries stored with key "wkt".
+   * @param String $wkt
    */
-  function fromText($items) {
+  function fromText($wkt) {
 
-    foreach ($items as $item) {
+    try {
+      // add GEOMETRYCOLLECTION if missing for OpenLayers compability
+      if (stripos($wkt, 'GEOMETRYCOLLECTION') !== 0) {
+        $wkt = 'GEOMETRYCOLLECTION('.$wkt.')';
+      }
+
+      if ($this->multi) {
+
+        // convert geometrycollection with single geometries to multi geometry
+        $wkt = db_query("SELECT ST_AsText(ST_Union('GEOMETRYCOLLECTION(EMPTY)', :wkt))",
+          array(':wkt' => $wkt))->fetchField();
+
+        $geometry = new postgis_geometry($this->type, $this->srid);
+        $geometry->fromText($wkt);
+        $this->geometries[] = $geometry;
+
+      } else {
+
+        // convert geometrycollection  to single geometries
+        $rows = db_query("SELECT ST_AsText(a.geom) as wkt FROM (
+          SELECT (ST_Dump(ST_GeomFromText(:wkt))).geom as geom) AS a;",
+          array(':wkt' => $wkt));
+
+        foreach ($rows as $row) {
+          $geometry = new postgis_geometry($this->type, $this->srid);
+          $geometry->fromText($row->wkt);
+          $this->geometries[] = $geometry;
+        }
+      }
+    }
+    catch (PDOException $e) {
+
+      // just add broken WKT, will be validated later.
       $geometry = new postgis_geometry($this->type, $this->srid);
-      $geometry->fromText($item['wkt']);
+      $geometry->fromText($wkt);
       $this->geometries[] = $geometry;
     }
   }
@@ -128,6 +166,15 @@ class postgis_geometry_set {
       $geometry->fromGeometry($item['geometry']);
       $this->geometries[] = $geometry;
     }
+  }
+
+  function getText() {
+
+    $wkt = array();
+    foreach ($this->geometries as $geometry) {
+      $wkt[] = $geometry->getText();
+    }
+    return implode(',', $wkt);
   }
 
   /**
@@ -149,7 +196,7 @@ class postgis_geometry_set {
 
   /**
    * Get an array of geometries.
-   * Text representation is stored with key "wkt" and 
+   * Text representation is stored with key "wkt" and
    * binary representation is stored with key "geometry".
    *
    * @return array
@@ -164,6 +211,10 @@ class postgis_geometry_set {
       );
     }
     return $items;
+  }
+
+  function isEmpty() {
+    return empty($this->geometries);
   }
 }
 
@@ -191,15 +242,6 @@ class postgis_geometry {
    * @param String $wkt
    */
   function fromText($wkt) {
-
-    // handle OpenLayers input
-    if (stripos($wkt, 'GEOMETRYCOLLECTION') === 0 &&
-        $this->type != 'GEOMETRYCOLLECTION') {
-
-      $wkt = db_query("SELECT ST_AsText(ST_Union('GEOMETRYCOLLECTION(EMPTY)', :wkt))",
-          array(':wkt' => $wkt))->fetchField();
-    }
-
     $this->wkt = $wkt;
     $this->geometry = NULL;
   }
@@ -293,7 +335,7 @@ class postgis_geometry {
     }
     catch (PDOException $e) {
       // TODO: catch only WKT parse errors
-      return t('Unable to parse WKT.');
+      return t('Unable to parse WKT: '.$geo);
     }
   }
 

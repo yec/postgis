@@ -89,13 +89,12 @@ function postgis_field_formatter_view($entity_type, $entity, $field, $instance, 
 
   $set = new postgis_geometry_set($field['settings']['type'], $field['settings']['srid']);
   $set->fromGeometry($items);
+  $wkt = $set->getText();
 
   switch ($display['type']) {
 
     case 'wkt':
-      foreach ($set->getItems() as $index => $item) {
-        $element[$index]['#markup'] = $item['wkt'];
-      }
+      $element[]['#markup'] = $wkt;
       break;
 
     case 'openlayers':
@@ -104,16 +103,9 @@ function postgis_field_formatter_view($entity_type, $entity, $field, $instance, 
       $map = openlayers_map_load($map_name);
       $map = openlayers_build_map($map->data);
 
-      $wkt = array();
-      foreach ($set->getItems() as $item) {
-        $wkt[] = $item['wkt'];
-      }
-
-      // TODO: handle multi geometries
-
       $map['layers']['postgis_formatter_layer']['features'] = array(array(
-        'wkt' => 'GEOMETRYCOLLECTION(' . implode(',', $wkt) . ')',
-        'projection' => $field['settings']['srid']
+        'wkt' => 'GEOMETRYCOLLECTION('.$wkt.')',
+        'projection' => $field['settings']['srid'],
       ));
 
       // render map if no errors found
