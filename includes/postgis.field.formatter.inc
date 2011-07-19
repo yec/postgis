@@ -106,7 +106,7 @@ function postgis_field_formatter_view($entity_type, $entity, $field, $instance, 
 
       $wkt = array();
       foreach ($set->getItems() as $item) {
-        $wkt[] = $item['postgis']->getText();
+        $wkt[] = $item['wkt'];
       }
 
       // TODO: handle multi geometries
