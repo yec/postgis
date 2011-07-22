@@ -128,7 +128,8 @@ class postgis_geometry_set {
       if ($this->multi) {
 
         // convert geometrycollection with single geometries to multi geometry
-        $wkt = db_query("SELECT ST_AsText(ST_Union('GEOMETRYCOLLECTION(EMPTY)', :wkt))",
+        $wkt = db_query("SELECT ST_AsText(ST_Multi(ST_Collect(a.geom))) as wkt FROM (
+          SELECT (ST_Dump(ST_GeomFromText(:wkt))).geom as geom) AS a",
           array(':wkt' => $wkt))->fetchField();
 
         $geometry = new postgis_geometry($this->type, $this->srid);
