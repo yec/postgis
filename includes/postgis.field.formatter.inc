@@ -15,6 +15,11 @@ function postgis_field_formatter_info() {
       'label' => t('Well Known Text (WKT)'),
       'field types' => array('postgis'),
     ),
+    'measurement' => array(
+      'label' => t('Measurement'),
+      'field types' => array('postgis'),
+      'settings' => array('type' => 'length'),
+	  ),
   );
 
   if (module_exists('openlayers')) {
@@ -95,6 +100,11 @@ function postgis_field_formatter_view($entity_type, $entity, $field, $instance, 
 
     case 'wkt':
       $element[]['#markup'] = $wkt;
+      break;
+
+    case 'measurement':
+      // TODO: make measurement configurable
+      $element[]['#markup'] = $set->length('km') . ' ' . t('km');
       break;
 
     case 'openlayers':

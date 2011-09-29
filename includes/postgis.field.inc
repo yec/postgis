@@ -139,7 +139,12 @@ function postgis_field_diff($entity, $field, $items) {
     $new->fromGeometry($items);
 
     $ori = new postgis_geometry_set($field['settings']['type'], $field['settings']['srid']);
-    $ori->fromGeometry($entity->original->{$field['field_name']}[$entity->language]);
+
+    if (isset($entity->original)) {
+      $ori->fromGeometry($entity->original->{$field['field_name']}[$entity->language]);
+    } else {
+      $ori->fromGeometry($entity->{$field['field_name']}[$entity->language]);
+    }
 
     $diff = $new->diff($ori);
 

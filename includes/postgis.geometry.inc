@@ -51,6 +51,14 @@ class postgis_geometry_set {
     }
   }
 
+  function length($unit) {
+  	$length = 0;
+  	foreach ($this->geometries as $geometry) {
+      $length += $geometry->length($unit);
+    }
+    return $length;
+  }
+
   /**
    * Count geometries.
    *
@@ -342,6 +350,19 @@ class postgis_geometry {
       // TODO: catch only WKT parse errors
       return t('Unable to parse WKT: '.$geo);
     }
+  }
+
+  function length($unit) {
+
+    $geo = is_null($this->wkt) ? $this->geometry : $this->wkt;
+
+    $result = db_query("SELECT ST_Length(:geo, true)", array(':geo' => $geo))->fetchField();
+
+    if ($unit === 'km') {
+      $result = round($result/1000);
+    }
+
+    return $result;
   }
 
   /**
