@@ -14,7 +14,7 @@ function postgis_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_
     $info = field_info_field($name);
     if ($info['type'] == 'postgis') {
       $targets[$name] = array(
-        'name' => t($instance['label'] . ' KML'),
+        'name' => t($instance['label']),
         'callback' => 'postgis_feeds_set_target',
       );
     }
@@ -27,5 +27,5 @@ function postgis_feeds_set_target($source, $entity, $target, $value) {
   $geo = db_query("SELECT ST_AsText(ST_CollectionExtract(ST_GeomFromKML(:kml),2));",
           array(':kml' => $value))->fetchField();
 
-  $entity->{$target}[$entity->language][0]['wkt'] = $geo;
+  $entity->{$target}[$entity->language][0] = $geo;
 }

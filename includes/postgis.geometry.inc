@@ -195,13 +195,15 @@ class postgis_geometry_set {
    *
    * @return <type>
    */
-  function getBox() {
+  function getBox($buffer = 0) {
 
     $items = array();
     foreach ($this->geometries as $index => $geometry) {
       $items[':geo'.$index] = $geometry->getText();
     }
-    $box = db_query("SELECT Box2D(ST_Union(".implode('::geometry , ', array_keys($items))."::geometry))",
+    $keys = implode('::geometry , ', array_keys($items));
+    $items[':buffer'] = $buffer;
+    $box = db_query("SELECT Box2D(ST_Buffer(ST_Union(".$keys."::geometry), :buffer))",
         $items)->fetchField();
 
     return $box;
