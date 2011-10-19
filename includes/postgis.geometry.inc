@@ -115,6 +115,7 @@ class postgis_geometry_set {
 
     return $diff_set;
   }
+  
 
   /**
    * Add geometries from text.
@@ -195,15 +196,19 @@ class postgis_geometry_set {
    *
    * @return <type>
    */
-  function getBox($buffer = 0) {
+  function getBox($buffer = 0, $srid = NULL) {
 
     $items = array();
     foreach ($this->geometries as $index => $geometry) {
       $items[':geo'.$index] = $geometry->getText();
     }
     $keys = implode('::geometry , ', array_keys($items));
+
     $items[':buffer'] = $buffer;
-    $box = db_query("SELECT Box2D(ST_Buffer(ST_Union(".$keys."::geometry), :buffer))",
+    $items[':target_srid'] = empty($srid) ? $this->srid : $srid;
+    $items[':source_srid'] = $this->srid;
+    
+    $box = db_query("SELECT Box2D(ST_Transform(ST_SetSRID(ST_Buffer(ST_Union(".$keys."::geometry), :buffer), :source_srid), :target_srid))",
         $items)->fetchField();
 
     return $box;
@@ -278,10 +283,17 @@ class postgis_geometry {
    */
   function getText() {
     if (is_null($this->wkt)) {
-      $this->wkt = db_query("SELECT ST_AsText(:geometry);",
+      $this->wkt = db_query("SELECT ST_AsText(:geometry)",
           array(':geometry' => $this->geometry))->fetchField();
     }
     return $this->wkt;
+  }
+
+  function getKML() {
+
+    $geometry = is_null($this->wkt) ? $this->geometry : $this->wkt;
+    
+    return db_query("SELECT ST_AsKML(:geometry)", array(':geometry' => $geometry))->fetchField();
   }
 
   /**
