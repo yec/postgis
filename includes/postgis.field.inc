@@ -104,52 +104,6 @@ function postgis_field_presave($entity_type, $entity, $field, $instance, $langco
   $items = $set->getItems();
 }
 
-/**
- * Implements hook_field_insert().
- */
-function postgis_field_insert($entity_type, $entity, $field, $instance, $langcode, &$items) {
-  postgis_field_diff($entity, $field, $items);
-}
-
-/**
- * Implements hook_field_update().
- */
-function postgis_field_update($entity_type, $entity, $field, $instance, $langcode, &$items) {
-  postgis_field_diff($entity, $field, $items);
-}
-
-/**
- * Implements hook_field_delete().
- */
-function postgis_field_delete($entity_type, $entity, $field, $instance, $langcode, &$items) {
-  postgis_field_diff($entity, $field, $items);
-}
-
-/**
- * Calculate bounding box of changed area
- * and invoke hook_postgis_field_diff.
- *
- * @param <type> $entity
- * @param <type> $field
- */
-function postgis_field_diff($entity, $field, $items) {
-
-  if (!empty($items)) {
-    $new = new postgis_geometry_set($field['settings']['type'], $field['settings']['srid']);
-    $new->fromGeometry($items);
-
-    $ori = new postgis_geometry_set($field['settings']['type'], $field['settings']['srid']);
-
-    if (isset($entity->original)) {
-      $ori->fromGeometry($entity->original->{$field['field_name']}[$entity->language]);
-    }
-
-    $diff = $new->diff($ori);
-
-    // let other modules handle diffs
-    module_invoke_all('postgis_field_diff', $field, $diff);
-  }
-}
 
 /**
  * Implements hook_field_update_field().
