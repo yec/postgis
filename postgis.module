@@ -4,12 +4,12 @@
  * @file
  */
 
-require_once('includes/postgis.feeds.inc');
-require_once('includes/postgis.field.formatter.inc');
-require_once('includes/postgis.field.inc');
-require_once('includes/postgis.field.widget.inc');
-require_once('includes/postgis.geometry.inc');
-require_once('includes/postgis.openlayers.inc');
+module_load_include('inc', 'postgis', '/includes/postgis.feeds');
+module_load_include('inc', 'postgis', '/includes/postgis.field');
+module_load_include('inc', 'postgis', '/includes/postgis.field.formatter');
+module_load_include('inc', 'postgis', '/includes/postgis.field.widget');
+module_load_include('inc', 'postgis', '/includes/postgis.geometry');
+module_load_include('inc', 'postgis', '/includes/postgis.openlayers');
 
 define('POSTGIS_DEFAULT_SRID', 4326);
 
