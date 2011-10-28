@@ -19,3 +19,32 @@ function postgis_field_schema($field) {
     ),
   );
 }
+
+/**
+ * Implements hook_requirements().
+ */
+function postgis_requirements($phase) {
+
+  $requirements = array();
+
+  switch ($phase) {
+    case 'runtime':
+      try {
+        $value = db_query('SELECT substring(PostGIS_Version() from 1 for 3)')->fetchField();
+        $severity = $value === '1.5' ? REQUIREMENT_OK : REQUIREMENT_WARNING;
+      }
+      catch (PDOException $e) {
+        $value = t('Not available');
+        $severity = REQUIREMENT_ERROR;
+      }
+      $requirements[] = array(
+        'title' => 'PostGIS',
+        'description' => t('Version 1.5 of <a href="@link">PostGIS</a> is strongly recommended.', 
+            array('@link' => 'http://postgis.org')),
+        'value' => $value,
+        'severity' => $severity,
+      );
+  }
+
+  return $requirements;
+}
