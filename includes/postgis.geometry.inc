@@ -5,8 +5,7 @@
  * PostGIS geometry classes.
  */
 
-class postgis_geometry_exception extends Exception
-{
+class postgis_geometry_exception extends Exception {
 }
 
 /**
@@ -52,8 +51,8 @@ class postgis_geometry_set {
   }
 
   function length($unit) {
-  	$length = 0;
-  	foreach ($this->geometries as $geometry) {
+    $length = 0;
+    foreach ($this->geometries as $geometry) {
       $length += $geometry->length($unit);
     }
     return $length;
@@ -115,7 +114,7 @@ class postgis_geometry_set {
 
     return $diff_set;
   }
-  
+
 
   /**
    * Add geometries from text.
@@ -131,7 +130,7 @@ class postgis_geometry_set {
     try {
       // add GEOMETRYCOLLECTION if missing for OpenLayers compability
       if (stripos($wkt, 'GEOMETRYCOLLECTION') !== 0) {
-        $wkt = 'GEOMETRYCOLLECTION('.$wkt.')';
+        $wkt = 'GEOMETRYCOLLECTION(' . $wkt . ')';
       }
 
       if ($this->multi) {
@@ -145,7 +144,8 @@ class postgis_geometry_set {
         $geometry->fromText($wkt);
         $this->geometries[] = $geometry;
 
-      } else {
+      }
+      else {
 
         // convert geometrycollection  to single geometries
         $rows = db_query("SELECT ST_AsText(a.geom) as wkt FROM (
@@ -200,16 +200,17 @@ class postgis_geometry_set {
 
     $items = array();
     foreach ($this->geometries as $index => $geometry) {
-      $items[':geo'.$index] = $geometry->getText();
+      $items[':geo' . $index] = $geometry->getText();
     }
     $keys = implode('::geometry , ', array_keys($items));
 
     $items[':buffer'] = $buffer;
     $items[':target_srid'] = empty($srid) ? $this->srid : $srid;
     $items[':source_srid'] = $this->srid;
-    
-    $box = db_query("SELECT Box2D(ST_Transform(ST_SetSRID(ST_Buffer(ST_Union(".$keys."::geometry), :buffer), :source_srid), :target_srid))",
-        $items)->fetchField();
+
+    $box = db_query('SELECT Box2D(ST_Transform(ST_SetSRID(ST_Buffer(
+      ST_Union(' . $keys . '::geometry), :buffer), :source_srid), :target_srid))',
+      $items)->fetchField();
 
     return $box;
   }
@@ -292,7 +293,7 @@ class postgis_geometry {
   function getKML() {
 
     $geometry = is_null($this->wkt) ? $this->geometry : $this->wkt;
-    
+
     return db_query("SELECT ST_AsKML(:geometry)", array(':geometry' => $geometry))->fetchField();
   }
 
@@ -362,7 +363,7 @@ class postgis_geometry {
     }
     catch (PDOException $e) {
       // TODO: catch only WKT parse errors
-      return t('Unable to parse WKT: '.$geo);
+      return t('Unable to parse WKT: ' . $geo);
     }
   }
 

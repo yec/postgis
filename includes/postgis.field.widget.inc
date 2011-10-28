@@ -137,7 +137,7 @@ function postgis_field_widget_form(&$form, &$form_state, $field, $instance, $lan
     $element['wkt'] = array(
       '#type' => 'textarea',
       '#attributes' => array('id' => $field['field_name'] . '_wkt' . $delta, 'style' => 'display: none;'),
-      '#default_value' => empty($value) ? '' : 'GEOMETRYCOLLECTION('.$value.')',
+      '#default_value' => empty($value) ? '' : 'GEOMETRYCOLLECTION(' . $value . ')',
       '#required' => $element['#required'],
       '#resizable' => FALSE,
     );

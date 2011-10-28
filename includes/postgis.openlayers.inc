@@ -37,7 +37,7 @@ function postgis_openlayers_maps() {
       'osm_mapnik',
     )
   );
-  
+
   $formatter = new stdClass();
   $formatter->api_version = 1;
   $formatter->name = 'postgis_formatter_map';
@@ -70,7 +70,7 @@ function postgis_openlayers_maps() {
       'osm_mapnik',
     )
   );
-  
+
   return array(
     $widget->name    => $widget,
     $formatter->name => $formatter,

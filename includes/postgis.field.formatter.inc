@@ -19,7 +19,7 @@ function postgis_field_formatter_info() {
       'label' => t('Measurement'),
       'field types' => array('postgis'),
       'settings' => array('type' => 'length'),
-	  ),
+    ),
   );
 
   if (module_exists('openlayers')) {
@@ -41,7 +41,7 @@ function postgis_field_formatter_settings_form($field, $instance, $view_mode, $f
   $settings = $display['settings'];
 
   if ($display['type'] == 'openlayers' && module_exists('openlayers')) {
-    
+
     // OpenLayers maps filtered to those which have the postgis_formatter_layer
     $maps = openlayers_maps();
     $maps_options = array();
@@ -54,7 +54,7 @@ function postgis_field_formatter_settings_form($field, $instance, $view_mode, $f
     if (empty($maps)) {
       form_set_error('map', 'Error: You have no compatible OpenLayers maps. Make sure that at least one map has the PostGIS formatter layer enabled.');
     }
-    
+
     $element['map'] = array(
       '#title' => t('OpenLayers map'),
       '#type' => 'select',
@@ -114,7 +114,7 @@ function postgis_field_formatter_view($entity_type, $entity, $field, $instance, 
       $map = openlayers_build_map($map->data);
 
       $map['layers']['postgis_formatter_layer']['features'] = array(array(
-        'wkt' => 'GEOMETRYCOLLECTION('.$wkt.')',
+        'wkt' => 'GEOMETRYCOLLECTION(' . $wkt . ')',
         'projection' => $field['settings']['srid'],
       ));
 
