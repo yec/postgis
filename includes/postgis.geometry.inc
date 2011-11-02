@@ -56,7 +56,7 @@ class postgis_geometry_set {
 
   /**
    * Returns length of all geometries.
-   * 
+   *
    * @param string $unit
    *
    * @return int
@@ -229,7 +229,7 @@ class postgis_geometry_set {
 
   /**
    * Returns an array of geometries.
-   * 
+   *
    * Text representation is stored with key "wkt" and
    * binary representation is stored with key "geometry".
    *
@@ -329,7 +329,7 @@ class postgis_geometry {
    * Calculates diffrence to a given geometry.
    *
    * @param postgis_geometry $geometry
-   * 
+   *
    * @return postgis_geometry
    */
   function diff($geometry) {
@@ -385,7 +385,7 @@ class postgis_geometry {
 
   /**
    * Returns length of geometry using ST_Length().
-   * 
+   *
    * @param string $unit
    *
    * @return int
