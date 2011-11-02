@@ -39,7 +39,7 @@ function postgis_requirements($phase) {
       }
       $requirements[] = array(
         'title' => 'PostGIS',
-        'description' => t('Version 1.5 of <a href="@link">PostGIS</a> is strongly recommended.', 
+        'description' => t('Version 1.5 of <a href="@link">PostGIS</a> is strongly recommended.',
             array('@link' => 'http://postgis.org')),
         'value' => $value,
         'severity' => $severity,

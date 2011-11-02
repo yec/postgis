@@ -22,6 +22,9 @@ function postgis_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_
 
 }
 
+/**
+ * Callback function for Feeds processor to convert KML geometries to WKT.
+ */
 function postgis_feeds_set_target($source, $entity, $target, $value) {
 
   $geo = db_query("SELECT ST_AsText(ST_CollectionExtract(ST_GeomFromKML(:kml),2));",

@@ -17,11 +17,14 @@ class postgis_geometry_set {
   private $cardinality, $type, $srid, $multi;
 
   /**
-   * Create an empty geometry set.
+   * Creates an empty geometry set.
    *
-   * @param String $type        Geometry type
-   * @param int    $srid        Spatial projection
-   * @param int    $cardinality Number of geometries
+   * @param string $type
+   *   Geometry type.
+   * @param int $srid
+   *   Spatial projection.
+   * @param int $cardinality
+   *   Number of geometries.
    */
   function __construct($type, $srid, $cardinality = NULL) {
     $this->type = $type;
@@ -31,9 +34,10 @@ class postgis_geometry_set {
   }
 
   /**
-   * Validate each geometry.
+   * Validates each geometry.
    *
-   * @param String $field_name Name of geometry form field.
+   * @param String $field_name
+   *   Name of geometry form field.
    */
   function validate($field_name) {
 
@@ -50,6 +54,13 @@ class postgis_geometry_set {
     }
   }
 
+  /**
+   * Returns length of all geometries.
+   * 
+   * @param string $unit
+   *
+   * @return int
+   */
   function length($unit) {
     $length = 0;
     foreach ($this->geometries as $geometry) {
@@ -171,7 +182,8 @@ class postgis_geometry_set {
   /**
    * Add geometries from binary.
    *
-   * @param array $items Geometries stored with key "geometry".
+   * @param array $items
+   *   Geometries stored with key "geometry".
    */
   function fromGeometry($items) {
 
@@ -216,7 +228,8 @@ class postgis_geometry_set {
   }
 
   /**
-   * Get an array of geometries.
+   * Returns an array of geometries.
+   * 
    * Text representation is stored with key "wkt" and
    * binary representation is stored with key "geometry".
    *
@@ -247,10 +260,12 @@ class postgis_geometry {
   private $geometry, $wkt, $type, $srid;
 
   /**
-   * Create an empty geometry.
+   * Creates an empty geometry.
    *
-   * @param String $type Geometry type
-   * @param int    $srid Spatial projection
+   * @param String $type
+   *   Geometry type.
+   * @param int $srid
+   *   Spatial projection.
    */
   function __construct($type, $srid) {
     $this->type = $type;
@@ -260,7 +275,7 @@ class postgis_geometry {
   /**
    * Add geometry from text.
    *
-   * @param String $wkt
+   * @param string $wkt
    */
   function fromText($wkt) {
     $this->wkt = $wkt;
@@ -268,7 +283,7 @@ class postgis_geometry {
   }
 
   /**
-   * Add geometries from binary.
+   * Adds geometries from binary.
    *
    * @param <type> $geometry
    */
@@ -278,9 +293,9 @@ class postgis_geometry {
   }
 
   /**
-   * Get text representation of geometry.
+   * Returns text representation of geometry.
    *
-   * @return String
+   * @return string
    */
   function getText() {
     if (is_null($this->wkt)) {
@@ -298,9 +313,9 @@ class postgis_geometry {
   }
 
   /**
-   * Get binary representation of geometry.
+   * Returns binary representation of geometry.
    *
-   * @return <type>
+   * @return postgis_geometry
    */
   function getGeometry() {
     if (is_null($this->geometry)) {
@@ -311,9 +326,10 @@ class postgis_geometry {
   }
 
   /**
-   * Calculate diffrence to a given geometry.
+   * Calculates diffrence to a given geometry.
    *
    * @param postgis_geometry $geometry
+   * 
    * @return postgis_geometry
    */
   function diff($geometry) {
@@ -336,9 +352,9 @@ class postgis_geometry {
   }
 
   /**
-   * Validate geometry.
+   * Validates geometry.
    *
-   * @return String
+   * @return string
    */
   function validate() {
 
@@ -367,6 +383,13 @@ class postgis_geometry {
     }
   }
 
+  /**
+   * Returns length of geometry using ST_Length().
+   * 
+   * @param string $unit
+   *
+   * @return int
+   */
   function length($unit) {
 
     $geo = is_null($this->wkt) ? $this->geometry : $this->wkt;
@@ -381,7 +404,7 @@ class postgis_geometry {
   }
 
   /**
-   * Check if geomety is empty.
+   * Checks if geometry is empty.
    *
    * @return boolean
    */
