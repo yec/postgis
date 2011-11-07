@@ -58,8 +58,10 @@ class PostgisGeometrySet {
    * Returns length of all geometries.
    *
    * @param string $unit
+   *   Abbreviation of the units, e.g. "km".
    *
    * @return int
+   *   Length in given units.
    */
   function length($unit) {
     $length = 0;
@@ -80,23 +82,13 @@ class PostgisGeometrySet {
 
   /**
    * Add a geometrie to geometries.
-   *
-   * @param PostgisGeometry $geometry
    */
-  function add($geometry) {
-
-    if (get_class($geometry) !== 'postgis_geometry') {
-      throw new PostgisGeometryException('not a postgis_geometry');
-    }
-
+  function add(PostgisGeometry $geometry) {
     $this->geometries[] = $geometry;
   }
 
   /**
    * Get geometry at a given index.
-   *
-   * @param int $index
-   * @return PostgisGeometry
    */
   function get($index) {
     return $this->geometries[$index];
@@ -104,9 +96,6 @@ class PostgisGeometrySet {
 
   /**
    * Create a new set containing the diffrence of each geometry.
-   *
-   * @param PostgisGeometrySet $set
-   * @return PostgisGeometrySet
    */
   function diff($set) {
 
@@ -129,8 +118,6 @@ class PostgisGeometrySet {
 
   /**
    * Add geometries from text.
-   *
-   * @param String $wkt
    */
   function fromText($wkt) {
 
@@ -194,6 +181,9 @@ class PostgisGeometrySet {
     }
   }
 
+  /**
+   * Returns text representation of all geometries.
+   */
   function getText() {
 
     $wkt = array();
@@ -205,8 +195,6 @@ class PostgisGeometrySet {
 
   /**
    * Calculate bounding box of all geometries.
-   *
-   * @return <type>
    */
   function getBox($buffer = 0, $srid = NULL) {
 
@@ -234,6 +222,7 @@ class PostgisGeometrySet {
    * binary representation is stored with key "geometry".
    *
    * @return array
+   *   Array of text and binary representation of all geometries.
    */
   function getItems() {
 
@@ -274,8 +263,6 @@ class PostgisGeometry {
 
   /**
    * Add geometry from text.
-   *
-   * @param string $wkt
    */
   function fromText($wkt) {
     $this->wkt = $wkt;
@@ -284,8 +271,6 @@ class PostgisGeometry {
 
   /**
    * Adds geometries from binary.
-   *
-   * @param <type> $geometry
    */
   function fromGeometry($geometry) {
     $this->geometry = $geometry;
@@ -294,8 +279,6 @@ class PostgisGeometry {
 
   /**
    * Returns text representation of geometry.
-   *
-   * @return string
    */
   function getText() {
     if (is_null($this->wkt)) {
@@ -305,6 +288,9 @@ class PostgisGeometry {
     return $this->wkt;
   }
 
+  /**
+   * Returns KML representation of geometry.
+   */
   function getKML() {
 
     $geometry = is_null($this->wkt) ? $this->geometry : $this->wkt;
@@ -314,8 +300,6 @@ class PostgisGeometry {
 
   /**
    * Returns binary representation of geometry.
-   *
-   * @return PostgisGeometry
    */
   function getGeometry() {
     if (is_null($this->geometry)) {
@@ -329,8 +313,10 @@ class PostgisGeometry {
    * Calculates diffrence to a given geometry.
    *
    * @param PostgisGeometry $geometry
+   *   Geometry which this instance will be compared to.
    *
    * @return PostgisGeometry
+   *   Geometry of diffrence.
    */
   function diff($geometry) {
 
@@ -354,7 +340,8 @@ class PostgisGeometry {
   /**
    * Validates geometry.
    *
-   * @return string
+   * @return string|null
+   *   Reason if not valid, otherwise null.
    */
   function validate() {
 
@@ -387,6 +374,10 @@ class PostgisGeometry {
    * Returns length of geometry using ST_Length().
    *
    * @param string $unit
+   *   Abbreviation of the units, e.g. "km".
+   *
+   * @return int
+   *   Length in given units.
    *
    * @return int
    */
@@ -405,8 +396,6 @@ class PostgisGeometry {
 
   /**
    * Checks if geometry is empty.
-   *
-   * @return boolean
    */
   function isEmpty() {
     $geo = is_null($this->wkt) ? $this->geometry : $this->wkt;
