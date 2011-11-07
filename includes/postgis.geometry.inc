@@ -73,8 +73,6 @@ class PostgisGeometrySet {
 
   /**
    * Count geometries.
-   *
-   * @return int
    */
   function count() {
     return count($this->geometries);
@@ -378,8 +376,6 @@ class PostgisGeometry {
    *
    * @return int
    *   Length in given units.
-   *
-   * @return int
    */
   function length($unit) {
 
