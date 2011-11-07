@@ -42,14 +42,14 @@ class postgis_geometry_set {
   function validate($field_name) {
 
     if ($this->count() > $this->cardinality) {
-      form_set_error(check_plain($field_name), t('To many geometries. Got @result, was expecting @cardinality.',
+      form_set_error($field_name, t('To many geometries. Got @result, was expecting @cardinality.',
           array('@result' => $this->count(), '@cardinality' => $this->cardinality)));
     }
 
     foreach ($this->geometries as $geometry) {
       $result = $geometry->validate();
       if (!empty($result)) {
-        form_set_error(check_plain($field_name), check_plain($result));
+        form_set_error($field_name, check_plain($result));
       }
     }
   }

@@ -52,7 +52,7 @@ function postgis_field_formatter_settings_form($field, $instance, $view_mode, $f
     }
 
     if (empty($maps)) {
-      form_set_error('map', 'Error: You have no compatible OpenLayers maps. Make sure that at least one map has the PostGIS formatter layer enabled.');
+      form_set_error('map', t('Error: You have no compatible OpenLayers maps. Make sure that at least one map has the PostGIS formatter layer enabled.'));
     }
 
     $element['map'] = array(
