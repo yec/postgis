@@ -128,7 +128,7 @@ function postgis_field_update_field($field, $prior_field, $has_data) {
 
         foreach ($columns as $field => $column) {
 
-          db_query('ALTER TABLE ' . $prefix . $table . ' DROP COLUMN ' . $column);
+          db_drop_field($table, $column);
 
           db_query(
             'SELECT AddGeometryColumn(:prefix, :table, :column, :srid, :type, 2)',
