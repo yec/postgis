@@ -92,7 +92,7 @@ function postgis_field_formatter_view($entity_type, $entity, $field, $instance, 
 
   $element = array();
 
-  $set = new postgis_geometry_set($field['settings']['type'], $field['settings']['srid']);
+  $set = new PostgisGeometrySet($field['settings']['type'], $field['settings']['srid']);
   $set->fromGeometry($items);
   $wkt = $set->getText();
 

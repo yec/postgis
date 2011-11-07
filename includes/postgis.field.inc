@@ -72,7 +72,7 @@ function postgis_field_validate($entity_type, $entity, $field, $instance, $langc
   // catch empty input
   $wkt = isset($items['wkt']) ? $items['wkt'] : '';
 
-  $set = new postgis_geometry_set($field['settings']['type'], $field['settings']['srid'], $field['cardinality']);
+  $set = new PostgisGeometrySet($field['settings']['type'], $field['settings']['srid'], $field['cardinality']);
   $set->fromText($wkt);
 
   $set->validate($field['field_name']);
@@ -83,7 +83,7 @@ function postgis_field_validate($entity_type, $entity, $field, $instance, $langc
  */
 function postgis_field_is_empty($item, $field) {
 
-  $set = new postgis_geometry_set($field['settings']['type'], $field['settings']['srid']);
+  $set = new PostgisGeometrySet($field['settings']['type'], $field['settings']['srid']);
   $set->fromText($item);
 
   return $set->isEmpty();
@@ -98,7 +98,7 @@ function postgis_field_presave($entity_type, $entity, $field, $instance, $langco
   // catch empty input
   $wkt = count($items) > 0 ? $items[0] : '';
 
-  $set = new postgis_geometry_set($field['settings']['type'], $field['settings']['srid']);
+  $set = new PostgisGeometrySet($field['settings']['type'], $field['settings']['srid']);
   $set->fromText($wkt);
 
   $items = $set->getItems();

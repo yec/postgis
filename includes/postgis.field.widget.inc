@@ -89,7 +89,7 @@ function postgis_field_widget_form(&$form, &$form_state, $field, $instance, $lan
   $widget = $instance['widget'];
   $settings = $widget['settings'];
 
-  $set = new postgis_geometry_set($field['settings']['type'], $field['settings']['srid']);
+  $set = new PostgisGeometrySet($field['settings']['type'], $field['settings']['srid']);
   $set->fromGeometry($items);
   $value = $set->getText();
 

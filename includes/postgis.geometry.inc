@@ -5,13 +5,13 @@
  * PostGIS geometry classes.
  */
 
-class postgis_geometry_exception extends Exception {
+class PostgisGeometryException extends Exception {
 }
 
 /**
  * Provides a set of postgis_geometry with same geometry type and projection.
  */
-class postgis_geometry_set {
+class PostgisGeometrySet {
 
   private $geometries = array();
   private $cardinality, $type, $srid, $multi;
@@ -81,12 +81,12 @@ class postgis_geometry_set {
   /**
    * Add a geometrie to geometries.
    *
-   * @param postgis_geometry $geometry
+   * @param PostgisGeometry $geometry
    */
   function add($geometry) {
 
     if (get_class($geometry) !== 'postgis_geometry') {
-      throw new postgis_geometry_exception('not a postgis_geometry');
+      throw new PostgisGeometryException('not a postgis_geometry');
     }
 
     $this->geometries[] = $geometry;
@@ -96,7 +96,7 @@ class postgis_geometry_set {
    * Get geometry at a given index.
    *
    * @param int $index
-   * @return postgis_geometry
+   * @return PostgisGeometry
    */
   function get($index) {
     return $this->geometries[$index];
@@ -105,16 +105,16 @@ class postgis_geometry_set {
   /**
    * Create a new set containing the diffrence of each geometry.
    *
-   * @param postgis_geometry_set $set
-   * @return postgis_geometry_set
+   * @param PostgisGeometrySet $set
+   * @return PostgisGeometrySet
    */
   function diff($set) {
 
     if (get_class($set) !== 'postgis_geometry_set') {
-      throw new postgis_geometry_exception('not a postgis_geometry_set');
+      throw new PostgisGeometryException('not a postgis_geometry_set');
     }
 
-    $diff_set = new postgis_geometry_set($this->type, $this->srid, $this->cardinality);
+    $diff_set = new PostgisGeometrySet($this->type, $this->srid, $this->cardinality);
 
     foreach ($this->geometries as $index => $geometry) {
       if ($index < $set->count()) {
@@ -151,7 +151,7 @@ class postgis_geometry_set {
           SELECT (ST_Dump(ST_GeomFromText(:wkt))).geom as geom) AS a",
           array(':wkt' => $wkt))->fetchField();
 
-        $geometry = new postgis_geometry($this->type, $this->srid);
+        $geometry = new PostgisGeometry($this->type, $this->srid);
         $geometry->fromText($wkt);
         $this->geometries[] = $geometry;
 
@@ -164,7 +164,7 @@ class postgis_geometry_set {
           array(':wkt' => $wkt));
 
         foreach ($rows as $row) {
-          $geometry = new postgis_geometry($this->type, $this->srid);
+          $geometry = new PostgisGeometry($this->type, $this->srid);
           $geometry->fromText($row->wkt);
           $this->geometries[] = $geometry;
         }
@@ -173,7 +173,7 @@ class postgis_geometry_set {
     catch (PDOException $e) {
 
       // just add broken WKT, will be validated later.
-      $geometry = new postgis_geometry($this->type, $this->srid);
+      $geometry = new PostgisGeometry($this->type, $this->srid);
       $geometry->fromText($wkt);
       $this->geometries[] = $geometry;
     }
@@ -188,7 +188,7 @@ class postgis_geometry_set {
   function fromGeometry($items) {
 
     foreach ($items as $item) {
-      $geometry = new postgis_geometry($this->type, $this->srid);
+      $geometry = new PostgisGeometry($this->type, $this->srid);
       $geometry->fromGeometry($item['geometry']);
       $this->geometries[] = $geometry;
     }
@@ -255,7 +255,7 @@ class postgis_geometry_set {
 /**
  * Simple class for a PostGIS geometry.
  */
-class postgis_geometry {
+class PostgisGeometry {
 
   private $geometry, $wkt, $type, $srid;
 
@@ -315,7 +315,7 @@ class postgis_geometry {
   /**
    * Returns binary representation of geometry.
    *
-   * @return postgis_geometry
+   * @return PostgisGeometry
    */
   function getGeometry() {
     if (is_null($this->geometry)) {
@@ -328,14 +328,14 @@ class postgis_geometry {
   /**
    * Calculates diffrence to a given geometry.
    *
-   * @param postgis_geometry $geometry
+   * @param PostgisGeometry $geometry
    *
-   * @return postgis_geometry
+   * @return PostgisGeometry
    */
   function diff($geometry) {
 
     if (get_class($geometry) !== 'postgis_geometry') {
-      throw new postgis_geometry_exception('not postgis_geometry');
+      throw new PostgisGeometryException('not postgis_geometry');
     }
 
     $geoA = $this->getGeometry();
@@ -345,7 +345,7 @@ class postgis_geometry {
         array(':geoA' => $geoA, ':geoB' => $geoB))->fetchField();
     $geoType = db_query("SELECT GeometryType(:geo)", array(':geo' => $geoDiff))->fetchField();
 
-    $diff = new postgis_geometry($geoType, $this->srid);
+    $diff = new PostgisGeometry($geoType, $this->srid);
     $diff->fromGeometry($geoDiff);
 
     return $diff;
