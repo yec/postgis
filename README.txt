@@ -16,3 +16,4 @@ OpenLayers integration
 * optional
 * behaviors
 * GEOMETRYCOLLECTION
+

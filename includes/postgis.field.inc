@@ -147,3 +147,4 @@ function postgis_field_update_field($field, $prior_field, $has_data) {
     }
   }
 }
+

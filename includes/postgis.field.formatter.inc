@@ -135,3 +135,4 @@ function postgis_field_formatter_view($entity_type, $entity, $field, $instance, 
 
   return $element;
 }
+

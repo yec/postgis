@@ -398,3 +398,4 @@ class PostgisGeometry {
     return empty($geo);
   }
 }
+

@@ -50,3 +50,4 @@ function postgis_requirements($phase) {
 
   return $requirements;
 }
+

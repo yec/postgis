@@ -32,3 +32,4 @@ function postgis_feeds_set_target($source, $entity, $target, $value) {
 
   $entity->{$target}[$entity->language][0] = $geo;
 }
+

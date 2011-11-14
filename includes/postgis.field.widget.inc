@@ -153,3 +153,4 @@ function postgis_field_widget_form(&$form, &$form_state, $field, $instance, $lan
   }
   return $element;
 }
+
