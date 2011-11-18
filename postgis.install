@@ -30,6 +30,7 @@ function postgis_requirements($phase) {
   $t = get_t();
 
   switch ($phase) {
+    case 'install':
     case 'runtime':
       try {
         $value = db_query('SELECT substring(PostGIS_Version() from 1 for 3)')->fetchField();
