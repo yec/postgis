@@ -132,7 +132,7 @@ class PostgisGeometrySet {
       if ($this->multi) {
 
         // Convert geometrycollection with single geometries to multi geometry.
-        $wkt = db_query("SELECT ST_AsText(ST_Multi(ST_Collect(a.geom))) AS wkt 
+        $wkt = db_query("SELECT ST_AsText(ST_Multi(ST_Collect(a.geom))) AS wkt
           FROM (SELECT (ST_Dump(ST_GeomFromText(:wkt))).geom as geom) AS a",
           array(':wkt' => $wkt))->fetchField();
 
