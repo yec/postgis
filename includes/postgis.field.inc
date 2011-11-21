@@ -15,7 +15,7 @@ function postgis_field_info() {
       'description' => t('This field stores geospatial data in the database.'),
       'settings' => array(
         'type' => 'point',
-        'srid' => POSTGIS_DEFAULT_SRID
+        'srid' => POSTGIS_DEFAULT_SRID,
       ),
       'instance_settings' => array(),
       'default_widget' => 'wkt',
@@ -55,7 +55,7 @@ function postgis_field_settings_form($field, $instance, $has_data) {
     '#disabled' => $has_data,
   );
 
-  // let other modules extend the settings form
+  // Let other modules extend the settings form.
   $additions = module_invoke_all('postgis_field_settings_form', $field, $instance, $has_data);
   if (is_array($additions)) {
     $form = array_merge($form, $additions);
@@ -69,7 +69,7 @@ function postgis_field_settings_form($field, $instance, $has_data) {
  */
 function postgis_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, &$errors) {
 
-  // catch empty input
+  // Catch empty input.
   $wkt = isset($items['wkt']) ? $items['wkt'] : '';
 
   $set = new PostgisGeometrySet($field['settings']['type'], $field['settings']['srid'], $field['cardinality']);
@@ -95,7 +95,7 @@ function postgis_field_is_empty($item, $field) {
  */
 function postgis_field_presave($entity_type, $entity, $field, $instance, $langcode, &$items) {
 
-  // catch empty input
+  // Catch empty input.
   $wkt = count($items) > 0 ? $items[0] : '';
 
   $set = new PostgisGeometrySet($field['settings']['type'], $field['settings']['srid']);

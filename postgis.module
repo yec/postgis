@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Main file of postgis module. Loads include files and implements general hooks.
+ * Main file of this module. Loads include files and implements general hooks.
  */
 
 module_load_include('inc', 'postgis', '/includes/postgis.feeds');

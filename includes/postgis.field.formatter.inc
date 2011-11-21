@@ -103,7 +103,7 @@ function postgis_field_formatter_view($entity_type, $entity, $field, $instance, 
       break;
 
     case 'measurement':
-      // TODO: make measurement configurable
+      // TODO: make measurement configurable.
       $element[]['#markup'] = $set->length('km') . ' ' . t('km');
       break;
 
@@ -113,20 +113,22 @@ function postgis_field_formatter_view($entity_type, $entity, $field, $instance, 
       $map = openlayers_map_load($map_name);
       $map = openlayers_build_map($map->data);
 
-      $map['layers']['postgis_formatter_layer']['features'] = array(array(
-        'wkt' => 'GEOMETRYCOLLECTION(' . $wkt . ')',
-        'projection' => $field['settings']['srid'],
-      ));
+      $map['layers']['postgis_formatter_layer']['features'] = array(
+        array(
+          'wkt' => 'GEOMETRYCOLLECTION(' . $wkt . ')',
+          'projection' => $field['settings']['srid'],
+        ),
+      );
 
-      // render map if no errors found
+      // Render map if no errors found.
       if (empty($map['errors'])) {
         $js = array('openlayers' => array('maps' => array($map['id'] => $map)));
         drupal_add_js($js, 'setting');
 
-        // push map through theme function
+        // Push map through theme function.
         $element[0]['#markup'] = theme('openlayers_map', array(
           'map' => $map,
-          'map_name' => $map_name
+          'map_name' => $map_name,
         ));
       }
 

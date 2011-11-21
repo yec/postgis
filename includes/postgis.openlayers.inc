@@ -22,8 +22,8 @@ function postgis_openlayers_maps() {
     'center' => array(
       'initial' => array(
         'centerpoint' => '0,0',
-        'zoom' => '2'
-      )
+        'zoom' => '2',
+      ),
     ),
     'options' => array(
       'maxExtent' => openlayers_get_extent('900913'),
@@ -31,11 +31,11 @@ function postgis_openlayers_maps() {
     'behaviors' => array(
       'openlayers_behavior_panzoombar' => array(),
       'openlayers_behavior_drawfeatures' => array(),
-      'openlayers_behavior_keyboarddefaults' => array()
+      'openlayers_behavior_keyboarddefaults' => array(),
     ),
     'layers' => array(
       'osm_mapnik',
-    )
+    ),
   );
 
   $formatter = new stdClass();
@@ -51,8 +51,8 @@ function postgis_openlayers_maps() {
     'center' => array(
       'initial' => array(
         'centerpoint' => '0,0',
-        'zoom' => '2'
-      )
+        'zoom' => '2',
+      ),
     ),
     'options' => array(
       'maxExtent' => openlayers_get_extent('900913'),
@@ -68,7 +68,7 @@ function postgis_openlayers_maps() {
     'layers' => array(
       'postgis_formatter_layer',
       'osm_mapnik',
-    )
+    ),
   );
 
   return array(
@@ -90,7 +90,7 @@ function postgis_openlayers_layers() {
   $layer->data = array(
     'layer_type' => 'openlayers_layer_type_raw',
     'projection' => array('900913'),
-    'features' => array()
+    'features' => array(),
   );
   $layers[$layer->name] = $layer;
   return $layers;

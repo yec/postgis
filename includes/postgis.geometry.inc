@@ -124,16 +124,16 @@ class PostgisGeometrySet {
     }
 
     try {
-      // add GEOMETRYCOLLECTION if missing for OpenLayers compability
+      // Add GEOMETRYCOLLECTION if missing for OpenLayers compability.
       if (stripos($wkt, 'GEOMETRYCOLLECTION') !== 0) {
         $wkt = 'GEOMETRYCOLLECTION(' . $wkt . ')';
       }
 
       if ($this->multi) {
 
-        // convert geometrycollection with single geometries to multi geometry
-        $wkt = db_query("SELECT ST_AsText(ST_Multi(ST_Collect(a.geom))) as wkt FROM (
-          SELECT (ST_Dump(ST_GeomFromText(:wkt))).geom as geom) AS a",
+        // Convert geometrycollection with single geometries to multi geometry.
+        $wkt = db_query("SELECT ST_AsText(ST_Multi(ST_Collect(a.geom))) AS wkt 
+          FROM (SELECT (ST_Dump(ST_GeomFromText(:wkt))).geom as geom) AS a",
           array(':wkt' => $wkt))->fetchField();
 
         $geometry = new PostgisGeometry($this->type, $this->srid);
@@ -143,7 +143,7 @@ class PostgisGeometrySet {
       }
       else {
 
-        // convert geometrycollection  to single geometries
+        // Convert geometrycollection  to single geometries.
         $rows = db_query("SELECT ST_AsText(a.geom) as wkt FROM (
           SELECT (ST_Dump(ST_GeomFromText(:wkt))).geom as geom) AS a;",
           array(':wkt' => $wkt));
@@ -157,7 +157,7 @@ class PostgisGeometrySet {
     }
     catch (PDOException $e) {
 
-      // just add broken WKT, will be validated later.
+      // Just add broken WKT, will be validated later.
       $geometry = new PostgisGeometry($this->type, $this->srid);
       $geometry->fromText($wkt);
       $this->geometries[] = $geometry;
@@ -234,6 +234,9 @@ class PostgisGeometrySet {
     return $items;
   }
 
+  /**
+   * Checks if geometries are empty.
+   */
   function isEmpty() {
     return empty($this->geometries);
   }
@@ -322,15 +325,16 @@ class PostgisGeometry {
       throw new PostgisGeometryException('not postgis_geometry');
     }
 
-    $geoA = $this->getGeometry();
-    $geoB = $geometry->getGeometry();
+    $geo_a = $this->getGeometry();
+    $geo_b = $geometry->getGeometry();
 
-    $geoDiff = db_query("SELECT ST_Union(ST_Difference(:geoA, :geoB),ST_Difference(:geoB, :geoA))",
-        array(':geoA' => $geoA, ':geoB' => $geoB))->fetchField();
-    $geoType = db_query("SELECT GeometryType(:geo)", array(':geo' => $geoDiff))->fetchField();
+    $geo_diff = db_query("SELECT ST_Union(ST_Difference(:geo_a, :geo_b), ST_Difference(:geo_b, :geo_a))",
+        array(':geo_a' => $geo_a, ':geo_b' => $geo_b))->fetchField();
+    $geo_type = db_query("SELECT GeometryType(:geo_diff)",
+        array(':geo_diff' => $geo_diff))->fetchField();
 
-    $diff = new PostgisGeometry($geoType, $this->srid);
-    $diff->fromGeometry($geoDiff);
+    $diff = new PostgisGeometry($geo_type, $this->srid);
+    $diff->fromGeometry($geo_diff);
 
     return $diff;
   }
@@ -349,21 +353,21 @@ class PostgisGeometry {
       $result = db_query("SELECT ST_GeometryType(:geo), ST_IsValid(:geo), ST_IsValidReason(:geo) as reason",
           array(':geo' => $geo))->fetchAssoc();
 
-      // return reason if geometry is not valid
+      // Return reason if geometry is not valid.
       if (!$result['st_isvalid']) {
         return t('Not a valid geometry: @reason.', array('@reason' => $result['reason']));
       }
 
       $result_type = drupal_strtolower(drupal_substr($result['st_geometrytype'], 3));
 
-      // return error if geometry type is unexpected
+      // Return error if geometry type is unexpected.
       if ($result_type != $this->type) {
         return t('Wrong geometry type. Got @result, was expecting @type.',
           array('@result' => drupal_strtoupper($result_type), '@type' => drupal_strtoupper($this->type)));
       }
     }
     catch (PDOException $e) {
-      // TODO: catch only WKT parse errors
+      // TODO: catch only WKT parse errors.
       return t('Unable to parse WKT: ' . $geo);
     }
   }
@@ -384,7 +388,7 @@ class PostgisGeometry {
     $result = db_query("SELECT ST_Length(:geo, true)", array(':geo' => $geo))->fetchField();
 
     if ($unit === 'km') {
-      $result = round($result/1000);
+      $result = round($result / 1000);
     }
 
     return $result;
