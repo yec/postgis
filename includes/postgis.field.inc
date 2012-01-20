@@ -148,3 +148,17 @@ function postgis_field_update_field($field, $prior_field, $has_data) {
   }
 }
 
+function postgis_field_extent($field) {
+  if ($field['type'] === 'postgis') {
+    $connection = Database::getConnection();
+    $prefix = $connection->tablePrefix('field_data_' . $field['field_name']);
+    $extent = db_query('SELECT ST_Extent(' . $field['field_name'] . '_geometry) from ' . $prefix . 'field_data_' . $field['field_name'] . ';')->fetchField();
+    $bbox = preg_split('/[\, ]/', drupal_substr($extent, 4, -1));
+    return (object)array(
+      'minx' => $bbox[0],
+      'miny' => $bbox[1],
+      'maxx' => $bbox[2],
+      'maxy' => $bbox[3]
+    );
+  }
+}
