@@ -80,10 +80,10 @@ function postgis_geoserver_layer_type_form($form, &$form_state) {
   $form['layer']['data']['srid']['#value'] = $layer->data['srid'];
   $form['layer']['data']['geometry_name']['#value'] = $layer->data['geometry_name'];
   $form['layer']['data']['geometry_type']['#value'] = $layer->data['geometry_type'];
-  $form['layer']['data']['bounding_box']['minx']['#value'] = $layer->data['minx'];
-  $form['layer']['data']['bounding_box']['miny']['#value'] = $layer->data['miny'];
-  $form['layer']['data']['bounding_box']['maxx']['#value'] = $layer->data['maxx'];
-  $form['layer']['data']['bounding_box']['maxy']['#value'] = $layer->data['maxy'];
+  $form['layer']['data']['bounding_box']['minx']['#value'] = $layer->data['bounding_box']['minx'];
+  $form['layer']['data']['bounding_box']['miny']['#value'] = $layer->data['bounding_box']['miny'];
+  $form['layer']['data']['bounding_box']['maxx']['#value'] = $layer->data['bounding_box']['maxx'];
+  $form['layer']['data']['bounding_box']['maxy']['#value'] = $layer->data['bounding_box']['maxy'];
   $form['layer']['data']['sql']['#value'] = $layer->data['sql'];
   
   return array(

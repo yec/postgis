@@ -1,7 +1,7 @@
 <?php
 /**
  * @file
- * WFS Layer Type
+ * GeoServer layer type for PostGIS fields.
  */
 
 /**
@@ -18,7 +18,7 @@ $plugin = array(
 );
 
 /**
- * OpenLayers WFS Layer Type class
+ * GeoServer PostGIS layer class.
  */
 class geoserver_layer_type_postgis_field extends geoserver_layer_type {
 
@@ -31,6 +31,14 @@ class geoserver_layer_type_postgis_field extends geoserver_layer_type {
   }
   
   function from_remote($remote) {
+    
+    foreach ($remote->featureType->metadata->entry as $entry) {
+      if (isset($entry->virtualTable)) {
+        $virtualTable = $entry->virtualTable;
+        break;
+      }
+    }
+    
     $remote_layer = new stdClass();
     $remote_layer->name = $remote->featureType->name;
     $remote_layer->title = $remote->featureType->title;
@@ -38,21 +46,22 @@ class geoserver_layer_type_postgis_field extends geoserver_layer_type {
     $remote_layer->data = array(
       'field' => $this->data['field'],
       'srid' => drupal_substr($remote->featureType->srs, 5),
-      'geometry_name' =>  $remote->featureType->metadata->entry[2]->virtualTable->geometry->name,
-      'geometry_type' =>  $remote->featureType->metadata->entry[2]->virtualTable->geometry->type,
+      'geometry_name' =>  $virtualTable->geometry->name,
+      'geometry_type' =>  $virtualTable->geometry->type,
       'bounding_box'=> array(
         'minx' => $remote->featureType->nativeBoundingBox->minx,
         'miny' => $remote->featureType->nativeBoundingBox->miny,
         'maxx' => $remote->featureType->nativeBoundingBox->maxx,
         'maxy' => $remote->featureType->nativeBoundingBox->maxy,
       ),
-      'sql' => $remote->featureType->metadata->entry[2]->virtualTable->sql,
+      'sql' => $virtualTable->sql,
       'layer_type' => $this->data['layer_type'],
     );
     return new geoserver_layer_type_postgis_field($remote_layer);
   }
   
   function to_remote() {
+    $bounding_box = isset($this->data['bounding_box']) ? $this->data['bounding_box'] : '';
     return array(
       'featureType' => array(
         'name'       => $this->name,
@@ -62,16 +71,16 @@ class geoserver_layer_type_postgis_field extends geoserver_layer_type {
         'nativeCRS'  => isset($this->data['srid']) ? 'EPSG:' . $this->data['srid'] : '',
         'srs'        => isset($this->data['srid']) ? 'EPSG:' . $this->data['srid'] : '',
         'nativeBoundingBox' => array(
-          'minx' => isset($this->data['bounding_box']['minx']) ? $this->data['bounding_box']['minx'] : '',
-          'miny' => isset($this->data['bounding_box']['miny']) ? $this->data['bounding_box']['miny'] : '',
-          'maxx' => isset($this->data['bounding_box']['maxx']) ? $this->data['bounding_box']['maxx'] : '',
-          'maxy' => isset($this->data['bounding_box']['maxy']) ? $this->data['bounding_box']['maxy'] : '',
+          'minx' => isset($bounding_box['minx']) ? $bounding_box['minx'] : '',
+          'miny' => isset($bounding_box['miny']) ? $bounding_box['miny'] : '',
+          'maxx' => isset($bounding_box['maxx']) ? $bounding_box['maxx'] : '',
+          'maxy' => isset($bounding_box['maxy']) ? $bounding_box['maxy'] : '',
         ),
         'latLonBoundingBox' => array(
-          'minx' => isset($this->data['bounding_box']['minx']) ? $this->data['bounding_box']['minx'] : '',
-          'miny' => isset($this->data['bounding_box']['miny']) ? $this->data['bounding_box']['miny'] : '',
-          'maxx' => isset($this->data['bounding_box']['maxx']) ? $this->data['bounding_box']['maxx'] : '',
-          'maxy' => isset($this->data['bounding_box']['maxy']) ? $this->data['bounding_box']['maxy'] : '',
+          'minx' => isset($bounding_box['minx']) ? $bounding_box['minx'] : '',
+          'miny' => isset($bounding_box['miny']) ? $bounding_box['miny'] : '',
+          'maxx' => isset($bounding_box['maxx']) ? $bounding_box['maxx'] : '',
+          'maxy' => isset($bounding_box['maxy']) ? $bounding_box['maxy'] : '',
         ),
         'projectionPolicy' => 'FORCE_DECLARED',
         'enabled' => TRUE,
@@ -125,10 +134,10 @@ class geoserver_layer_type_postgis_field extends geoserver_layer_type {
     $this->data['srid'] = $field['settings']['srid'];
     $this->data['geometry_name'] = $field_name . '_geometry';
     $this->data['geometry_type'] = $mapping[$field['settings']['type']];
-    $this->data['minx'] = $bbox->minx;
-    $this->data['miny'] = $bbox->miny;
-    $this->data['maxx'] = $bbox->maxy;
-    $this->data['maxy'] = $bbox->maxx;
+    $this->data['bounding_box']['minx'] = $bbox->minx;
+    $this->data['bounding_box']['miny'] = $bbox->miny;
+    $this->data['bounding_box']['maxx'] = $bbox->maxy;
+    $this->data['bounding_box']['maxy'] = $bbox->maxx;
     $this->data['sql'] = $this->get_sql($entity_type, $bundle_name, $field_name);
   }
   
