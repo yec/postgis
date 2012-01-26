@@ -73,24 +73,25 @@ function postgis_help($path, $arg) {
  */
 function postgis_geoserver_layer_type_form($form, &$form_state) {
   
-  $field = explode('.', $form['layer']['data']['field']['#value']);
+  $options = $form['layer']['data']['options'];
+  $field = explode('.', $options['field']['#value']);
   $layer = new geoserver_layer_type_postgis_field();
   $layer->load_field($field[0], $field[1], $field[2]);
   
-  $form['layer']['data']['srid']['#value'] = $layer->data['srid'];
-  $form['layer']['data']['geometry_name']['#value'] = $layer->data['geometry_name'];
-  $form['layer']['data']['geometry_type']['#value'] = $layer->data['geometry_type'];
-  $form['layer']['data']['bounding_box']['minx']['#value'] = $layer->data['bounding_box']['minx'];
-  $form['layer']['data']['bounding_box']['miny']['#value'] = $layer->data['bounding_box']['miny'];
-  $form['layer']['data']['bounding_box']['maxx']['#value'] = $layer->data['bounding_box']['maxx'];
-  $form['layer']['data']['bounding_box']['maxy']['#value'] = $layer->data['bounding_box']['maxy'];
-  $form['layer']['data']['sql']['#value'] = $layer->data['sql'];
+  $options['srid']['#value'] = $layer->data['options']['srid'];
+  $options['geometry_name']['#value'] = $layer->data['options']['geometry_name'];
+  $options['geometry_type']['#value'] = $layer->data['options']['geometry_type'];
+  $options['bounding_box']['minx']['#value'] = $layer->data['options']['bounding_box']['minx'];
+  $options['bounding_box']['miny']['#value'] = $layer->data['options']['bounding_box']['miny'];
+  $options['bounding_box']['maxx']['#value'] = $layer->data['options']['bounding_box']['maxx'];
+  $options['bounding_box']['maxy']['#value'] = $layer->data['options']['bounding_box']['maxy'];
+  $options['sql']['#value'] = $layer->data['options']['sql'];
   
   return array(
-    $form['layer']['data']['srid'],
-    $form['layer']['data']['geometry_name'],
-    $form['layer']['data']['geometry_type'],
-    $form['layer']['data']['bounding_box'],
-    $form['layer']['data']['sql'],
+    $options['srid'],
+    $options['geometry_name'],
+    $options['geometry_type'],
+    $options['bounding_box'],
+    $options['sql'],
   );
 }
