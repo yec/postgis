@@ -131,7 +131,9 @@ function postgis_field_widget_form(&$form, &$form_state, $field, $instance, $lan
     ));
 
     $element['map'] = array(
+      '#type' => 'item',
       '#markup' => '<div class="form-item" style="display:block">' . openlayers_render_map($map->data) . '</div>',
+      '#description' => $element['#description'],
     );
 
     $element['wkt'] = array(
