@@ -29,11 +29,11 @@ class geoserver_layer_type_postgis_field extends geoserver_layer_type_feature_ty
     parent::__construct($layer);
     $this->datastore = variable_get('geoserver_postgis_datastore', '');
   }
-  
+
   function from_feature_type($data) {
-    
+
     $featureType = isset($data->featureType) ? $data->featureType : new stdClass();
-    
+
     if (isset($featureType->metadata) && isset($featureType->metadata->entry)) {
       foreach ($featureType->metadata->entry as $entry) {
         if (isset($entry->virtualTable)) {
@@ -45,7 +45,7 @@ class geoserver_layer_type_postgis_field extends geoserver_layer_type_feature_ty
     $virtualTable = isset($virtualTable) ? $virtualTable : new stdClass();
     $geometry = isset($virtualTable->geometry) ? $virtualTable->geometry : new stdClass();
     $bbox = isset($featureType->nativeBoundingBox) ? $featureType->nativeBoundingBox : new stdClass();
-    
+
     $this->name = isset($featureType->name) ? $featureType->name : '';
     $this->title = isset($featureType->title) ? $featureType->title : '';
     $this->data['options']['srid'] = isset($featureType->srs) ? drupal_substr($featureType->srs, 5) : '';
@@ -59,12 +59,12 @@ class geoserver_layer_type_postgis_field extends geoserver_layer_type_feature_ty
     );
     $this->data['options']['sql'] = isset($virtualTable->sql) ? $virtualTable->sql : '';
   }
-  
+
   function to_feature_type() {
-    
+
     $options = isset($this->data['options']) ? $this->data['options'] : array();
     $bbox = isset($options['bounding_box']) ? $options['bounding_box'] : array();
-    
+
     return array(
       'featureType' => array(
         'name'       => $this->name,
@@ -90,7 +90,7 @@ class geoserver_layer_type_postgis_field extends geoserver_layer_type_feature_ty
         'metadata' => array(
           'entry' => array(
             array(
-              '@key' => 'cachingEnabled', 
+              '@key' => 'cachingEnabled',
               '$' => 'false',
             ),
             array(
@@ -118,9 +118,9 @@ class geoserver_layer_type_postgis_field extends geoserver_layer_type_feature_ty
       ),
     );
   }
-  
+
   function load_field($entity_type, $bundle_name, $field_name) {
-    
+
     // Map geometry types from PostGIS to GeoServer.
     $mapping = array(
       'point' => 'Point',
@@ -133,7 +133,7 @@ class geoserver_layer_type_postgis_field extends geoserver_layer_type_feature_ty
     );
     $field = field_info_field($field_name);
     $bbox = postgis_field_extent($field);
-    
+
     $this->data['options']['srid'] = $field['settings']['srid'];
     $this->data['options']['geometry_name'] = $field_name . '_geometry';
     $this->data['options']['geometry_type'] = $mapping[$field['settings']['type']];
@@ -143,7 +143,7 @@ class geoserver_layer_type_postgis_field extends geoserver_layer_type_feature_ty
     $this->data['options']['bounding_box']['maxy'] = $bbox->maxx;
     $this->data['options']['sql'] = $this->get_sql($entity_type, $bundle_name, $field_name);
   }
-  
+
   private function get_sql($entity_type, $bundle_name, $field_name) {
 
     $connection = Database::getConnection();
@@ -177,20 +177,20 @@ class geoserver_layer_type_postgis_field extends geoserver_layer_type_feature_ty
    * Options form which generates layers
    */
   function options_form() {
-    
+
     $field_options = array('');
     $fields = field_info_instances();
-    
+
     foreach ($fields as $entity_type => $bundles) {
-      
+
       $info = entity_get_info($entity_type);
-      
+
       foreach ($bundles as $bundle_name => $fields) {
-        
+
         foreach ($fields as $field_name => $field) {
-          
+
           $field = field_info_field($field_name);
-          
+
           if ($field['type'] === 'postgis') {
             $key = $entity_type . '.' . $bundle_name . '.' . $field_name;
             $value = $info['bundles'][$bundle_name]['label'] . ' (' . $field_name . ')';
@@ -200,13 +200,13 @@ class geoserver_layer_type_postgis_field extends geoserver_layer_type_feature_ty
         }
       }
     }
-    
+
     return array(
       'field' => array(
         '#type' => 'select',
         '#title' => t('Field'),
         '#options' => $field_options,
-        '#default_value' => isset($this->data['options']['field']) ? 
+        '#default_value' => isset($this->data['options']['field']) ?
                 $this->data['options']['field'] : '',
         '#ajax' => array(
           'callback' => 'postgis_geoserver_layer_type_form',
@@ -217,19 +217,19 @@ class geoserver_layer_type_postgis_field extends geoserver_layer_type_feature_ty
         '#type' => 'textfield',
         '#title' => t('Projection'),
         '#prefix' => '<div id="geoserver_layer_type_postgis_field">',
-        '#default_value' => isset($this->data['options']['srid']) ? 
+        '#default_value' => isset($this->data['options']['srid']) ?
                 $this->data['options']['srid'] : '',
       ),
       'geometry_name' => array(
         '#type' => 'textfield',
         '#title' => t('Geometry name'),
-        '#default_value' => isset($this->data['options']['geometry_name']) ? 
+        '#default_value' => isset($this->data['options']['geometry_name']) ?
                 $this->data['options']['geometry_name'] : '',
       ),
       'geometry_type' => array(
         '#type' => 'select',
         '#title' => t('Geometry type'),
-        '#default_value' => isset($this->data['options']['geometry_type']) ? 
+        '#default_value' => isset($this->data['options']['geometry_type']) ?
                 $this->data['options']['geometry_type'] : '',
         '#options' => array(
           'Geometry' => 'Geometry',
@@ -250,56 +250,56 @@ class geoserver_layer_type_postgis_field extends geoserver_layer_type_feature_ty
         'minx' => array(
           '#type' => 'textfield',
           '#title' => t('Min X'),
-          '#default_value' => isset($this->data['options']['bounding_box']['minx']) ? 
+          '#default_value' => isset($this->data['options']['bounding_box']['minx']) ?
                   $this->data['options']['bounding_box']['minx'] : '',
         ),
         'miny' => array(
           '#type' => 'textfield',
           '#title' => t('Min Y'),
-          '#default_value' => isset($this->data['options']['bounding_box']['miny']) ? 
+          '#default_value' => isset($this->data['options']['bounding_box']['miny']) ?
                   $this->data['options']['bounding_box']['miny'] : '',
         ),
         'maxx' => array(
           '#type' => 'textfield',
           '#title' => t('Max X'),
-          '#default_value' => isset($this->data['options']['bounding_box']['maxx']) ? 
+          '#default_value' => isset($this->data['options']['bounding_box']['maxx']) ?
                   $this->data['options']['bounding_box']['maxx'] : '',
         ),
         'maxy' => array(
           '#type' => 'textfield',
           '#title' => t('Max Y'),
-          '#default_value' => isset($this->data['options']['bounding_box']['maxy']) ? 
+          '#default_value' => isset($this->data['options']['bounding_box']['maxy']) ?
                   $this->data['options']['bounding_box']['maxy'] : '',
         ),
       ),
       'sql' => array(
         '#type' => 'textarea',
         '#title' => t('SQL'),
-        '#default_value' => isset($this->data['options']['sql']) ? 
+        '#default_value' => isset($this->data['options']['sql']) ?
                 $this->data['options']['sql'] : '',
         '#suffix' => '</div>',
       ),
       'sld' => array(
         '#type' => 'textarea',
         '#title' => t('SLD'),
-        '#default_value' => isset($this->data['options']['sld']) ? 
+        '#default_value' => isset($this->data['options']['sld']) ?
                 $this->data['options']['sld'] : '',
       )
     );
   }
-  
+
   function settings_form() {
-    
+
     $datastores = array('');
     $workspace  = variable_get('geoserver_workspace', '');
-    
+
     $result = geoserver_get('rest/workspaces/' . $workspace . '/datastores.json');
     if ($result->code == 200) {
       foreach ($result->data->dataStores->dataStore as $datastore) {
         $datastores[$datastore->name] = $datastore->name;
       }
     }
-    
+
     return array(
       'geoserver_postgis_datastore' => array(
         '#type' => 'select',

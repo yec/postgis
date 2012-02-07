@@ -28,7 +28,7 @@ function postgis_ctools_plugin_api($module, $api) {
       case 'openlayers_layers':
         return array('version' => 1);
     }
-  } 
+  }
   elseif ($module == 'geoserver') {
     switch ($api) {
       case 'geoserver_layer_types':
@@ -65,19 +65,19 @@ function postgis_help($path, $arg) {
 
 /**
  * AJAX callback; fills the form of a PostGIS GeoServer layer with default values of a given field instance.
- * 
+ *
  * @param array $form
  * @param array $form_state
- * 
- * @return array 
+ *
+ * @return array
  */
 function postgis_geoserver_layer_type_form($form, &$form_state) {
-  
+
   $options = $form['layer']['data']['options'];
   $field = explode('.', $options['field']['#value']);
   $layer = new geoserver_layer_type_postgis_field();
   $layer->load_field($field[0], $field[1], $field[2]);
-  
+
   $options['srid']['#value'] = $layer->data['options']['srid'];
   $options['geometry_name']['#value'] = $layer->data['options']['geometry_name'];
   $options['geometry_type']['#value'] = $layer->data['options']['geometry_type'];
@@ -86,7 +86,7 @@ function postgis_geoserver_layer_type_form($form, &$form_state) {
   $options['bounding_box']['maxx']['#value'] = $layer->data['options']['bounding_box']['maxx'];
   $options['bounding_box']['maxy']['#value'] = $layer->data['options']['bounding_box']['maxy'];
   $options['sql']['#value'] = $layer->data['options']['sql'];
-  
+
   return array(
     $options['srid'],
     $options['geometry_name'],
