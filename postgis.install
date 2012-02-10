@@ -25,6 +25,11 @@ function postgis_field_schema($field) {
  */
 function postgis_requirements($phase) {
 
+  if (drupal_get_bootstrap_phase() < DRUPAL_BOOTSTRAP_DATABASE) {
+    // Database configuration not available yet, ie. profile installation.
+    return array();
+  }
+
   $requirements = array();
   // Ensure translations don't break at install time.
   $t = get_t();
