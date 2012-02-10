@@ -64,7 +64,8 @@ function postgis_help($path, $arg) {
 }
 
 /**
- * AJAX callback; fills the form of a PostGIS GeoServer layer with default values of a given field instance.
+ * AJAX callback; fills the form of a PostGIS GeoServer layer
+ * with default values of a given field instance.
  *
  * @param array $form
  * @param array $form_state

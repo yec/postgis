@@ -30,25 +30,28 @@ class geoserver_layer_type_postgis_field extends geoserver_layer_type_feature_ty
     $this->datastore = variable_get('geoserver_postgis_datastore', '');
   }
 
+  /**
+   * Import from remote feature type definition.
+   */
   function from_feature_type($data) {
 
-    $featureType = isset($data->featureType) ? $data->featureType : new stdClass();
+    $feature_type = isset($data->featureType) ? $data->featureType : new stdClass();
 
-    if (isset($featureType->metadata) && isset($featureType->metadata->entry)) {
-      foreach ($featureType->metadata->entry as $entry) {
+    if (isset($feature_type->metadata) && isset($feature_type->metadata->entry)) {
+      foreach ($feature_type->metadata->entry as $entry) {
         if (isset($entry->virtualTable)) {
-          $virtualTable = $entry->virtualTable;
+          $virtual_table = $entry->virtualTable;
           break;
         }
       }
     }
-    $virtualTable = isset($virtualTable) ? $virtualTable : new stdClass();
-    $geometry = isset($virtualTable->geometry) ? $virtualTable->geometry : new stdClass();
-    $bbox = isset($featureType->nativeBoundingBox) ? $featureType->nativeBoundingBox : new stdClass();
+    $virtual_table = isset($virtual_table) ? $virtual_table : new stdClass();
+    $geometry = isset($virtual_table->geometry) ? $virtual_table->geometry : new stdClass();
+    $bbox = isset($feature_type->nativeBoundingBox) ? $feature_type->nativeBoundingBox : new stdClass();
 
-    $this->name = isset($featureType->name) ? $featureType->name : '';
-    $this->title = isset($featureType->title) ? $featureType->title : '';
-    $this->data['options']['srid'] = isset($featureType->srs) ? drupal_substr($featureType->srs, 5) : '';
+    $this->name = isset($feature_type->name) ? $feature_type->name : '';
+    $this->title = isset($feature_type->title) ? $feature_type->title : '';
+    $this->data['options']['srid'] = isset($feature_type->srs) ? drupal_substr($feature_type->srs, 5) : '';
     $this->data['options']['geometry_name'] = isset($geometry->name) ? $geometry->name : '';
     $this->data['options']['geometry_type'] = isset($geometry->type) ? $geometry->type : '';
     $this->data['options']['bounding_box'] = array(
@@ -57,9 +60,12 @@ class geoserver_layer_type_postgis_field extends geoserver_layer_type_feature_ty
       'maxx' => isset($bbox->maxx) ? $bbox->maxx : '',
       'maxy' => isset($bbox->maxy) ? $bbox->maxy : '',
     );
-    $this->data['options']['sql'] = isset($virtualTable->sql) ? $virtualTable->sql : '';
+    $this->data['options']['sql'] = isset($virtual_table->sql) ? $virtual_table->sql : '';
   }
 
+  /**
+   * Export to remote feature type definition.
+   */
   function to_feature_type() {
 
     $options = isset($this->data['options']) ? $this->data['options'] : array();
@@ -119,6 +125,9 @@ class geoserver_layer_type_postgis_field extends geoserver_layer_type_feature_ty
     );
   }
 
+  /**
+   * Load field configuration.
+   */
   function load_field($entity_type, $bundle_name, $field_name) {
 
     // Map geometry types from PostGIS to GeoServer.
@@ -144,7 +153,10 @@ class geoserver_layer_type_postgis_field extends geoserver_layer_type_feature_ty
     $this->data['options']['sql'] = $this->get_sql($entity_type, $bundle_name, $field_name);
   }
 
-  private function get_sql($entity_type, $bundle_name, $field_name) {
+  /**
+   * Get layer SQL definition.
+   */
+  protected function get_sql($entity_type, $bundle_name, $field_name) {
 
     $connection = Database::getConnection();
     $prefix = $connection->tablePrefix();
@@ -284,10 +296,13 @@ class geoserver_layer_type_postgis_field extends geoserver_layer_type_feature_ty
         '#title' => t('SLD'),
         '#default_value' => isset($this->data['options']['sld']) ?
                 $this->data['options']['sld'] : '',
-      )
+      ),
     );
   }
 
+  /**
+   * Layer type settings form.
+   */
   function settings_form() {
 
     $datastores = array('');
@@ -308,7 +323,7 @@ class geoserver_layer_type_postgis_field extends geoserver_layer_type_feature_ty
         '#description' => t('Select the PostGIS datastore where Drupal stores its data. This one needs to be created manually for now.'),
         '#default_value' => variable_get('geoserver_postgis_datastore', ''),
         '#suffix' => '</div>',
-      )
+      ),
     );
   }
 }
