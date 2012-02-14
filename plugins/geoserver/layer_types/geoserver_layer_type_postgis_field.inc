@@ -309,7 +309,7 @@ class geoserver_layer_type_postgis_field extends geoserver_layer_type_feature_ty
     $workspace  = variable_get('geoserver_workspace', '');
 
     $result = geoserver_get('rest/workspaces/' . $workspace . '/datastores.json');
-    if ($result->code == 200) {
+    if ($result->code == 200 && isset($result->data->dataStores)) {
       foreach ($result->data->dataStores->dataStore as $datastore) {
         $datastores[$datastore->name] = $datastore->name;
       }
