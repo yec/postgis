@@ -173,9 +173,11 @@ class PostgisGeometrySet {
   function fromGeometry($items) {
 
     foreach ($items as $item) {
-      $geometry = new PostgisGeometry($this->type, $this->srid);
-      $geometry->fromGeometry($item['geometry']);
-      $this->geometries[] = $geometry;
+      if (isset($item['geometry'])) {
+        $geometry = new PostgisGeometry($this->type, $this->srid);
+        $geometry->fromGeometry($item['geometry']);
+        $this->geometries[] = $geometry;
+      }
     }
   }
 
