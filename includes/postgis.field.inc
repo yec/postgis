@@ -95,12 +95,15 @@ function postgis_field_is_empty($item, $field) {
  */
 function postgis_field_presave($entity_type, $entity, $field, $instance, $langcode, &$items) {
 
-  // Catch empty input.
-  $wkt = count($items) > 0 ? $items[0] : '';
-
   $set = new PostgisGeometrySet($field['settings']['type'], $field['settings']['srid']);
-  $set->fromText($wkt);
 
+  // Handle WKT as well as WKB from mass updates of nodes.
+  if (isset($items[0]) && is_string($items[0])) {
+    $set->fromText($items[0]);
+  }
+  else {
+    $set->fromGeometry($items);
+  }
   $items = $set->getItems();
 }
 
