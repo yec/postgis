@@ -41,6 +41,7 @@ function postgis_requirements($phase) {
     case 'install':
     case 'update':
     case 'runtime':
+      // Check if PostGIS is installed
       try {
         $value = db_query('SELECT substring(PostGIS_Version() from 1 for 3)')->fetchField();
         if($value !== '1.5'){
@@ -51,6 +52,7 @@ function postgis_requirements($phase) {
         $value = $t('Not available');
         $severity = REQUIREMENT_ERROR;
       }
+      // Check if PostGIS can also be used
       if($severity === REQUIREMENT_OK || $severity === REQUIREMENT_WARNING){
         try {
           $has_spatial_refs = db_query('select count(*)>0 from spatial_ref_sys')->fetchField();
