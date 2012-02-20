@@ -68,14 +68,20 @@ function postgis_field_settings_form($field, $instance, $has_data) {
  * Implements hook_field_validate().
  */
 function postgis_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, &$errors) {
+  foreach($items as $delta => $item){
+    // Catch empty input.
+    $wkt = isset($item['wkt']) ? $item['wkt'] : '';
 
-  // Catch empty input.
-  $wkt = isset($items['wkt']) ? $items['wkt'] : '';
+    $set = new PostgisGeometrySet($field['settings']['type'], $field['settings']['srid'], $field['cardinality']);
+    $set->fromText($wkt);
 
-  $set = new PostgisGeometrySet($field['settings']['type'], $field['settings']['srid'], $field['cardinality']);
-  $set->fromText($wkt);
-
-  $set->validate($field['field_name']);
+    $validationError = $set->validate($field['field_name']);
+    var_dump($validationError);
+    // Add validation error if validation returned an array with error description
+    if(is_array($validationError)){
+      $errors[$field['field_name']][$langcode][$delta][] = $validationError;
+    }
+  }
 }
 
 /**
@@ -84,25 +90,27 @@ function postgis_field_validate($entity_type, $entity, $field, $instance, $langc
 function postgis_field_is_empty($item, $field) {
 
   $set = new PostgisGeometrySet($field['settings']['type'], $field['settings']['srid']);
-  $set->fromText($item);
+  $set->fromText($item['wkt']);
 
   return $set->isEmpty();
 }
 
 
 /**
+ * Combines entries from multiple items in a single widgets into a single collection.
+ * 
  * Implements hook_field_presave().
  */
 function postgis_field_presave($entity_type, $entity, $field, $instance, $langcode, &$items) {
-
   $set = new PostgisGeometrySet($field['settings']['type'], $field['settings']['srid']);
-
-  // Handle WKT as well as WKB from mass updates of nodes.
-  if (isset($items[0]) && is_string($items[0])) {
-    $set->fromText($items[0]);
-  }
-  else {
-    $set->fromGeometry($items);
+  foreach($items as $delta => $item){
+    // Handle WKT as well as WKB from mass updates of nodes.
+    if (isset($item['wkt']) && is_string($item['wkt'])) {
+      $set->fromText($item['wkt']);
+    }
+    else {
+      $set->fromGeometry($item);
+    }
   }
   $items = $set->getItems();
 }

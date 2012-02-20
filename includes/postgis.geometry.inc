@@ -35,21 +35,26 @@ class PostgisGeometrySet {
 
   /**
    * Validates each geometry.
-   *
-   * @param String $field_name
-   *   Name of geometry form field.
+   * 
+   * @return array
+   *   Reason array as described in API documentation for hook_field_validate if not valid, otherwise null.
    */
-  function validate($field_name) {
-
-    if ($this->count() > $this->cardinality) {
-      form_set_error($field_name, t('To many geometries. Got @result, was expecting @cardinality.',
-          array('@result' => $this->count(), '@cardinality' => $this->cardinality)));
+  function validate() {
+    if (($this->cardinality != -1) && ($this->count() > $this->cardinality)) {
+      return array(
+        'error' => 'postgis_cardinalitymismatch',
+        'message' => t('Too many geometries. Got @result, was expecting @cardinality.',
+          array(
+            '@result' => $this->count(),
+            '@cardinality' => $this->cardinality
+          )),
+      );
     }
 
     foreach ($this->geometries as $geometry) {
       $result = $geometry->validate();
-      if (!empty($result)) {
-        form_set_error($field_name, check_plain($result));
+      if($result!==NULL){
+        return $result;
       }
     }
   }
@@ -344,8 +349,8 @@ class PostgisGeometry {
   /**
    * Validates geometry.
    *
-   * @return string|null
-   *   Reason if not valid, otherwise null.
+   * @return array
+   *   Reason array as described in API documentation for hook_field_validate if not valid, otherwise null.
    */
   function validate() {
 
@@ -357,20 +362,29 @@ class PostgisGeometry {
 
       // Return reason if geometry is not valid.
       if (!$result['st_isvalid']) {
-        return t('Not a valid geometry: @reason.', array('@reason' => $result['reason']));
+        return array(
+          'error' => 'postgis_unparsable',
+          'message' => t('Not a valid geometry: @reason.', array('@reason' => $result['reason'])),
+        );
       }
 
       $result_type = drupal_strtolower(drupal_substr($result['st_geometrytype'], 3));
 
       // Return error if geometry type is unexpected.
       if ($result_type != $this->type) {
-        return t('Wrong geometry type. Got @result, was expecting @type.',
-          array('@result' => drupal_strtoupper($result_type), '@type' => drupal_strtoupper($this->type)));
+        return array(
+          'error' => 'postgis_typemismatch',
+          'message' => t('Wrong geometry type. Got @result, was expecting @type.',
+            array('@result' => drupal_strtoupper($result_type), '@type' => drupal_strtoupper($this->type))),
+          );
       }
     }
     catch (PDOException $e) {
       // TODO: catch only WKT parse errors.
-      return t('Unable to parse WKT: ' . $geo);
+      return array(
+        'error' => 'postgis_unparsable',
+        'message' => t('Unable to parse WKT: ' . $geo),
+      );
     }
   }
 

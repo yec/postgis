@@ -93,7 +93,7 @@ function postgis_field_widget_form(&$form, &$form_state, $field, $instance, $lan
   $set->fromGeometry($items);
   $value = $set->getText();
 
-  $element += array(
+  $element[$delta] = array(
     '#delta' => $delta,
   );
 
@@ -123,22 +123,23 @@ function postgis_field_widget_form(&$form, &$form_state, $field, $instance, $lan
     $behavior = isset($map->data['behaviors'][$settings['behavior']]) ?
         $map->data['behaviors'][$settings['behavior']] : array();
 
+    $textarea_id = $field['field_name'] . '_wkt' . $delta;
     $map->data['behaviors'][$settings['behavior']] = array_merge($behavior, array(
-      'element_id'    => $field['field_name'] . '_wkt' . $delta,
+      'element_id'    => $textarea_id,
       'srid'          => $field['settings']['srid'],
       'feature_types' => $types,
-      'feature_limit' => $field['cardinality'],
+      'feature_limit' => ($field['cardinality'] > 0) ? $field['cardinality'] : NULL,
     ));
 
-    $element['map'] = array(
+    $element[$delta]['map'] = array(
       '#type' => 'item',
       '#markup' => '<div class="form-item" style="display:block">' . openlayers_render_map($map->data) . '</div>',
       '#description' => $element['#description'],
     );
 
-    $element['wkt'] = array(
+    $element[$delta]['wkt'] = array(
       '#type' => 'textarea',
-      '#attributes' => array('id' => $field['field_name'] . '_wkt' . $delta, 'style' => 'display: none;'),
+      '#attributes' => array('id' => $textarea_id, 'style' => 'display: none;'),
       '#default_value' => empty($value) ? '' : 'GEOMETRYCOLLECTION(' . $value . ')',
       '#required' => $element['#required'],
       '#resizable' => FALSE,
@@ -146,7 +147,7 @@ function postgis_field_widget_form(&$form, &$form_state, $field, $instance, $lan
 
   }
   else {
-    $element['wkt'] = array(
+    $element[$delta]['wkt'] = array(
       '#title' => t('Well Known Text'),
       '#type' => 'textfield',
       '#default_value' => $value,
