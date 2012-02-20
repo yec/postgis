@@ -115,7 +115,8 @@ class PostgisGeometrySet {
 
 
   /**
-   * Add geometries from text.
+   * Add geometries from text. The existing geometries are kept and the new geometries are added behind.
+   * @param $wkt string
    */
   function fromText($wkt) {
 
@@ -132,6 +133,7 @@ class PostgisGeometrySet {
       if ($this->multi) {
 
         // Convert geometrycollection with single geometries to multi geometry.
+        // For example if OpenLayers sends a single point in a GeometryCollection, the following query would transfer it to a single point in a MuliPoint. This is done of type-compability with the selection geometry column type.
         $wkt = db_query("SELECT ST_AsText(ST_Multi(ST_Collect(a.geom))) AS wkt
           FROM (SELECT (ST_Dump(ST_GeomFromText(:wkt))).geom as geom) AS a",
           array(':wkt' => $wkt))->fetchField();
