@@ -6,12 +6,15 @@
  */
 
 /**
+ * Adds a geometry column to the field definition.
+ *
  * Implements hook_field_schema().
  */
 function postgis_field_schema($field) {
 
   return array(
     'columns' => array(
+      // Column that stores geometry (whatever type is chosen).
       'geometry' => array(
         'type' => 'blob',
         'pgsql_type' => 'geometry',
@@ -22,6 +25,7 @@ function postgis_field_schema($field) {
 }
 
 /**
+ * Verifies that PostGIS is installed in a suitable version.
  * Implements hook_requirements().
  */
 function postgis_requirements($phase) {

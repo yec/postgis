@@ -25,6 +25,8 @@ function postgis_field_info() {
 }
 
 /**
+ * Form that is shown when a postgis field is added to a content type.
+ * 
  * Implements hook_field_settings_form().
  */
 function postgis_field_settings_form($field, $instance, $has_data) {
@@ -52,6 +54,7 @@ function postgis_field_settings_form($field, $instance, $has_data) {
     '#type' => 'textfield',
     '#title' => t('SRID'),
     '#default_value' => $field['settings']['srid'],
+    '#description' => t('Select the map projection that shall be used to map the globe to a plain surface. In general 4326 fits the whole globe pretty well but local projections might give more precise results for specific areas (at the cost of more distortions in other areas).'),
     '#disabled' => $has_data,
   );
 

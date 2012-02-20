@@ -82,6 +82,8 @@ function postgis_field_widget_settings_form($field, $instance) {
 
 
 /**
+ * Renders map or text field for WKT in content editing screen.
+ * 
  * Implements hook_field_widget_form().
  */
 function postgis_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
@@ -131,6 +133,7 @@ function postgis_field_widget_form(&$form, &$form_state, $field, $instance, $lan
     ));
 
     $element['map'] = array(
+      '#title' => $instance['label'],
       '#type' => 'item',
       '#markup' => '<div class="form-item" style="display:block">' . openlayers_render_map($map->data) . '</div>',
       '#description' => $element['#description'],
