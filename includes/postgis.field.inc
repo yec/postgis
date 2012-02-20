@@ -55,12 +55,6 @@ function postgis_field_settings_form($field, $instance, $has_data) {
     '#disabled' => $has_data,
   );
 
-  // Let other modules extend the settings form.
-  $additions = module_invoke_all('postgis_field_settings_form', $field, $instance, $has_data);
-  if (is_array($additions)) {
-    $form = array_merge($form, $additions);
-  }
-
   return $form;
 }
 
