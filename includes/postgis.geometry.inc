@@ -43,8 +43,8 @@ class PostgisGeometrySet {
       case 'multipoint':
       case 'multilinestring':
       case 'multipolygon':
-      case 'geometrycollection':
         return TRUE;
+      case 'geometrycollection':
       case 'point':
       case 'linestring':
       case 'polygon':
@@ -146,7 +146,7 @@ class PostgisGeometrySet {
   function fromText($wkt) {
 
     // Catch empty WKT and GEOMETRYCOLLECTION coming from OpenLayers.
-    if (empty($wkt) || $wkt === 'GEOMETRYCOLLECTION()') {
+    if (empty($wkt) || $wkt === 'GEOMETRYCOLLECTION()' || $wkt === 'GEOMETRYCOLLECTION(EMPTY)') {
       return;
     }
 

@@ -54,7 +54,7 @@ class PostgisValidationsTestCase extends DrupalUnitTestCase {
     $this->assertTrue($result === NULL, 'GeometryCollection should allow all geometry types, even other collections');
 
     $unpacked = $set->getText();
-    $this->assertTrue(mb_strpos($unpacked, 'GEOMETRYCOLLECTION', 1) === FALSE, 'Nested GeometryCollection was removed.');
+    $this->assertTrue($unpacked === 'GEOMETRYCOLLECTION(POINT(9 48),POLYGON((10 5,12 14,10.4 5,10 5)))', 'Geometries are merged into one GeometryCollection.');
   }
 }
 
