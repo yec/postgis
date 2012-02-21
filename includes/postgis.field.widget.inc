@@ -142,7 +142,8 @@ function postgis_field_widget_form(&$form, &$form_state, $field, $instance, $lan
     $element[$delta]['wkt'] = array(
       '#type' => 'textarea',
       '#attributes' => array('id' => $textarea_id, 'style' => 'display: none;'),
-      '#default_value' => empty($value) ? '' : 'GEOMETRYCOLLECTION(' . $value . ')',
+      // Using a format that OpenLayers can handle
+      '#default_value' => ($value === 'GEOMETRYCOLLECTION(EMPTY)') ? '' : $value,
       '#required' => $element['#required'],
       '#resizable' => FALSE,
     );

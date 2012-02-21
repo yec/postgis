@@ -65,7 +65,7 @@ function postgis_field_settings_form($field, $instance, $has_data) {
  * Implements hook_field_validate().
  */
 function postgis_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, &$errors) {
-  foreach($items as $delta => $item){
+  foreach ($items as $delta => $item) {
     // Catch empty input.
     $wkt = isset($item['wkt']) ? $item['wkt'] : '';
 
@@ -74,7 +74,7 @@ function postgis_field_validate($entity_type, $entity, $field, $instance, $langc
 
     $validationError = $set->validate($field['field_name']);
     // Add validation error if validation returned an array with error description
-    if(is_array($validationError)){
+    if (is_array($validationError)) {
       $errors[$field['field_name']][$langcode][$delta][] = $validationError;
     }
   }
@@ -99,7 +99,7 @@ function postgis_field_is_empty($item, $field) {
  */
 function postgis_field_presave($entity_type, $entity, $field, $instance, $langcode, &$items) {
   $set = new PostgisGeometrySet($field['settings']['type'], $field['settings']['srid']);
-  foreach($items as $delta => $item){
+  foreach ($items as $delta => $item) {
     // Handle WKT as well as WKB from mass updates of nodes.
     if (isset($item['wkt']) && is_string($item['wkt'])) {
       $set->fromText($item['wkt']);

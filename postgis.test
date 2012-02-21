@@ -44,6 +44,18 @@ class PostgisValidationsTestCase extends DrupalUnitTestCase {
     $result = $set->validate();
     $this->assertTrue($result === NULL, 'GeometryCollection should allow all geometry types');
   }
+
+  public function testPostgisGeometryCollectionUnpack(){
+    $set = new PostgisGeometrySet('geometrycollection', 4236);
+    $set->fromText('POINT(9 48)');
+    $set->fromText('GEOMETRYCOLLECTION(POLYGON((10 5, 12 14, 10.4 5, 10 5)))');
+
+    $result = $set->validate();
+    $this->assertTrue($result === NULL, 'GeometryCollection should allow all geometry types, even other collections');
+
+    $unpacked = $set->getText();
+    $this->assertTrue(mb_strpos($unpacked, 'GEOMETRYCOLLECTION', 1) === FALSE, 'Nested GeometryCollection was removed.');
+  }
 }
 
 class PostgisSingleGeometries extends DrupalUnitTestCase {

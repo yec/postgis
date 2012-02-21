@@ -125,7 +125,7 @@ function postgis_field_formatter_view($entity_type, $entity, $field, $instance, 
 
       $map['layers']['postgis_formatter_layer']['features'] = array(
         array(
-          'wkt' => 'GEOMETRYCOLLECTION(' . $wkt . ')',
+          'wkt' => $wkt,
           'projection' => $field['settings']['srid'],
         ),
       );

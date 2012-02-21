@@ -158,7 +158,7 @@ class PostgisGeometrySet {
       if ($this->multi) {
 
         // Convert geometrycollection with single geometries to multi geometry.
-        // For example if OpenLayers sends a single point in a GeometryCollection, the following query would transfer it to a single point in a MuliPoint. This is done of type-compability with the selection geometry column type.
+        // For example if OpenLayers sends a single point in a GeometryCollection, the following query would transfer it to a single point in a MultiPoint. This is done of type-compability with the selection geometry column type.
         $wkt = db_query("SELECT ST_AsText(ST_Multi(ST_Collect(a.geom))) AS wkt
           FROM (SELECT (ST_Dump(ST_GeomFromText(:wkt))).geom as geom) AS a",
           array(':wkt' => $wkt))->fetchField();
@@ -210,14 +210,24 @@ class PostgisGeometrySet {
 
   /**
    * Returns text representation of all geometries.
+   * @return string
    */
   function getText() {
 
     $wkt = array();
     foreach ($this->geometries as $geometry) {
-      $wkt[] = $geometry->getText();
+      $single_wkt = $geometry->getText();
+      if(mb_stripos($single_wkt, 'GEOMETRYCOLLECTION(') === 0){
+        // Remove nested collections
+        $single_wkt = mb_substr($single_wkt, mb_strlen('GEOMETRYCOLLECTION('), mb_strlen($single_wkt)-1-mb_strlen('GEOMETRYCOLLECTION('));
+      }
+      $wkt[] = $single_wkt;
     }
-    return implode(',', $wkt);
+    if(count($wkt) === 0){
+      // An empty collection needs to contain the string EMPTY to be valid
+      $wkt[] = 'EMPTY';
+    }
+    return 'GEOMETRYCOLLECTION(' . implode(',', $wkt) . ')';
   }
 
   /**
