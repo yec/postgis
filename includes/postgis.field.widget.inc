@@ -148,6 +148,10 @@ function postgis_field_widget_form(&$form, &$form_state, $field, $instance, $lan
       '#resizable' => FALSE,
     );
 
+    // Remove empty GEOMETRYCOLLECTION coming from OpenLayers.
+    $element[$delta]['script'] = array(
+      '#markup' => '<script type="text/javascript">(function($){var field = $("#'.$textarea_id.'"); if (field.val() == "GEOMETRYCOLLECTION()") {field.html("")}})(jQuery);</script>',
+    );
   }
   else {
     $element[$delta]['wkt'] = array(
