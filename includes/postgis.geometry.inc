@@ -29,8 +29,28 @@ class PostgisGeometrySet {
   function __construct($type, $srid, $cardinality = -1) {
     $this->type = $type;
     $this->srid = $srid;
-    $this->multi = stripos($type, 'multi') === 0;
+    $this->multi = $this->isMulti($type);
     $this->cardinality = $cardinality;
+  }
+
+  /**
+   * Checks if geometry type is a collection of geometries.
+   * @param string $type Geometry type
+   * @return boolean TRUE if type is a collection.
+   */
+  private function isMulti($type){
+    switch ($type) {
+      case 'multipoint':
+      case 'multilinestring':
+      case 'multipolygon':
+      case 'geometrycollection':
+        return TRUE;
+      case 'point':
+      case 'linestring':
+      case 'polygon':
+        return FALSE;
+    }
+    throw new PostgisGeometryException(t('Geometry type not supported.'));
   }
 
   /**
