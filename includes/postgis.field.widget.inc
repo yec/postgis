@@ -128,6 +128,7 @@ function postgis_field_widget_form(&$form, &$form_state, $field, $instance, $lan
       'element_id'    => $textarea_id,
       'srid'          => $field['settings']['srid'],
       'feature_types' => $types,
+      // Drupal's unlimited value of -1 is not known to OpenLayers and thus needs to be converted to NULL
       'feature_limit' => ($field['cardinality'] > 0) ? $field['cardinality'] : NULL,
     ));
 

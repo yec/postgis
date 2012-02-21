@@ -24,9 +24,9 @@ class PostgisGeometrySet {
    * @param int $srid
    *   Spatial projection.
    * @param int $cardinality
-   *   Number of geometries.
+   *   Number of geometries. -1 means unlimited number of geometry.
    */
-  function __construct($type, $srid, $cardinality = NULL) {
+  function __construct($type, $srid, $cardinality = -1) {
     $this->type = $type;
     $this->srid = $srid;
     $this->multi = stripos($type, 'multi') === 0;
