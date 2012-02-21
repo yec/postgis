@@ -80,12 +80,10 @@ function postgis_field_widget_settings_form($field, $instance) {
   return $form;
 }
 
-
 /**
  * Implements hook_field_widget_form().
  */
 function postgis_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
-
   $widget = $instance['widget'];
   $settings = $widget['settings'];
 

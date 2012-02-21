@@ -76,7 +76,6 @@ function postgis_field_validate($entity_type, $entity, $field, $instance, $langc
     $set->fromText($wkt);
 
     $validationError = $set->validate($field['field_name']);
-    var_dump($validationError);
     // Add validation error if validation returned an array with error description
     if(is_array($validationError)){
       $errors[$field['field_name']][$langcode][$delta][] = $validationError;
