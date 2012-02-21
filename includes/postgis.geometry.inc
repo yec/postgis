@@ -145,7 +145,8 @@ class PostgisGeometrySet {
    */
   function fromText($wkt) {
 
-    if (empty($wkt)) {
+    // Catch empty WKT and GEOMETRYCOLLECTION coming from OpenLayers.
+    if (empty($wkt) || $wkt === 'GEOMETRYCOLLECTION()') {
       return;
     }
 
