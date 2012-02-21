@@ -373,7 +373,7 @@ class PostgisGeometry {
       $result_type = drupal_strtolower(drupal_substr($result['st_geometrytype'], 3));
 
       // Return error if geometry type is unexpected.
-      if ($result_type != $this->type) {
+      if (($this->type !== 'geometrycollection') && ($result_type != $this->type)) {
         return array(
           'error' => 'postgis_typemismatch',
           'message' => t('Wrong geometry type. Got @result, was expecting @type.',

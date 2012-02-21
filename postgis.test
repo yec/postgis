@@ -35,6 +35,15 @@ class PostgisValidationsTestCase extends DrupalUnitTestCase {
     $result = $set->validate();
     $this->assertTrue($result['error'] === 'postgis_unparsable', 'Point with wrong data should result in parse errors.');
   }
+
+  public function testPostgisGeometryCollectionIgnoresTypes(){
+    $set = new PostgisGeometrySet('geometrycollection', 4236);
+    $set->fromText('POINT(9 48)');
+    $set->fromText('LINESTRING(10 5, 12 14)');
+    $set->fromText('POLYGON((10 5, 12 14, 10.4 5, 10 5))');
+    $result = $set->validate();
+    $this->assertTrue($result === NULL, 'GeometryCollection should allow all geometry types');
+  }
 }
 
 class PostgisSingleGeometries extends DrupalUnitTestCase {
