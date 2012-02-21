@@ -148,8 +148,8 @@ class geoserver_layer_type_postgis_field extends geoserver_layer_type_feature_ty
     $this->data['options']['geometry_type'] = $mapping[$field['settings']['type']];
     $this->data['options']['bounding_box']['minx'] = $bbox->minx;
     $this->data['options']['bounding_box']['miny'] = $bbox->miny;
-    $this->data['options']['bounding_box']['maxx'] = $bbox->maxy;
-    $this->data['options']['bounding_box']['maxy'] = $bbox->maxx;
+    $this->data['options']['bounding_box']['maxx'] = $bbox->maxx;
+    $this->data['options']['bounding_box']['maxy'] = $bbox->maxy;
     $this->data['options']['sql'] = $this->get_sql($entity_type, $bundle_name, $field_name);
   }
 
