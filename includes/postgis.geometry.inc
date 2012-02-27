@@ -73,7 +73,7 @@ class PostgisGeometrySet {
 
     foreach ($this->geometries as $geometry) {
       $result = $geometry->validate();
-      if($result!==NULL){
+      if ($result!==NULL) {
         return $result;
       }
     }
@@ -218,13 +218,13 @@ class PostgisGeometrySet {
     $wkt = array();
     foreach ($this->geometries as $geometry) {
       $single_wkt = $geometry->getText();
-      if(mb_stripos($single_wkt, 'GEOMETRYCOLLECTION(') === 0){
+      if (mb_stripos($single_wkt, 'GEOMETRYCOLLECTION(') === 0) {
         // Remove nested collections
         $single_wkt = mb_substr($single_wkt, mb_strlen('GEOMETRYCOLLECTION('), mb_strlen($single_wkt)-1-mb_strlen('GEOMETRYCOLLECTION('));
       }
       $wkt[] = $single_wkt;
     }
-    if(count($wkt) === 0){
+    if (count($wkt) === 0) {
       // An empty collection needs to contain the string EMPTY to be valid
       $wkt[] = 'EMPTY';
     }

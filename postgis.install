@@ -48,7 +48,7 @@ function postgis_requirements($phase) {
       // Check if PostGIS is installed
       try {
         $value = db_query('SELECT substring(PostGIS_Version() from 1 for 3)')->fetchField();
-        if($value !== '1.5'){
+        if ($value !== '1.5') {
           $severity = REQUIREMENT_WARNING;
         }
       }
@@ -57,10 +57,10 @@ function postgis_requirements($phase) {
         $severity = REQUIREMENT_ERROR;
       }
       // Check if PostGIS can also be used
-      if($severity === REQUIREMENT_OK || $severity === REQUIREMENT_WARNING){
+      if ($severity === REQUIREMENT_OK || $severity === REQUIREMENT_WARNING) {
         try {
           $has_spatial_refs = db_query('select count(*)>0 from spatial_ref_sys')->fetchField();
-          if(!$has_spatial_refs){
+          if (!$has_spatial_refs) {
             $description_extension = $t('PostGIS installation lacks spatial reference systems.');
             $severity = REQUIREMENT_ERROR;
           }
@@ -70,8 +70,8 @@ function postgis_requirements($phase) {
           $severity = REQUIREMENT_ERROR;
         }
       }
-      
-      $description_extension = ($description_extension===NULL) ? '' : ' '.$description_extension;
+
+      $description_extension = ($description_extension===NULL) ? '' : ' ' . $description_extension;
       $requirements[] = array(
         'title' => 'PostGIS',
         'description' => $t('A <a href="@link">PostGIS</a> enabled database is required; version 1.5 is strongly recommended.',
