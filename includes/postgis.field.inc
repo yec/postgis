@@ -32,13 +32,13 @@ function postgis_field_info() {
 function postgis_field_settings_form($field, $instance, $has_data) {
 
   $types = array(
-    'point' => t('Point'),
-    'linestring' => t('Linestring'),
-    'polygon' => t('Polygon'),
-    'multipoint' => t('Multi Point'),
-    'multilinestring' => t('Multi Linestring'),
-    'multipolygon'  => t('Multi Polygon'),
-    'geometrycollection' => t('Geometry Collection'),
+    POSTGIS_PRIMITIVE_POINT => t('Point'),
+    POSTGIS_PRIMITIVE_LINESTRING => t('Linestring'),
+    POSTGIS_PRIMITIVE_POLYGON => t('Polygon'),
+    POSTGIS_PRIMITIVE_MULTIPOINT => t('Multi Point'),
+    POSTGIS_PRIMITIVE_MULTILINESTRING => t('Multi Linestring'),
+    POSTGIS_PRIMITIVE_MULTIPOLYGON => t('Multi Polygon'),
+    POSTGIS_PRIMITIVE_GEOMETRYCOLLECTION => t('Geometry Collection'),
   );
 
   $form['type'] = array(
@@ -98,7 +98,10 @@ function postgis_field_is_empty($item, $field) {
  * Implements hook_field_presave().
  */
 function postgis_field_presave($entity_type, $entity, $field, $instance, $langcode, &$items) {
-  $set = new PostgisGeometrySet($field['settings']['type'], $field['settings']['srid']);
+  $type = $field['settings']['type'];
+  $srid = $field['settings']['srid'];
+
+  $set = new PostgisGeometrySet($type, $srid);
   foreach ($items as $delta => $item) {
     // Handle WKT as well as WKB from mass updates of nodes.
     if (isset($item['wkt']) && is_string($item['wkt'])) {
@@ -108,7 +111,20 @@ function postgis_field_presave($entity_type, $entity, $field, $instance, $langco
       $set->fromGeometry($item);
     }
   }
-  $items = $set->getItems();
+
+  switch ($type) {
+    case POSTGIS_PRIMITIVE_GEOMETRYCOLLECTION:
+      $wkt = $set->getText();
+      $geometry = new PostgisGeometry($type, $srid);
+      $geometry->fromText($wkt);
+      $items = array(array(
+        'wkt' => $wkt,
+        'geometry' => $geometry->getGeometry()
+      ));
+      break;
+    default:
+      $items = $set->getItems();
+  }
 }
 
 

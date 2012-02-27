@@ -100,19 +100,19 @@ function postgis_field_widget_form(&$form, &$form_state, $field, $instance, $lan
   if (module_exists('openlayers') && $instance['widget']['type'] == 'openlayers') {
 
     switch ($field['settings']['type']) {
-      case 'point':
-      case 'multipoint':
+      case POSTGIS_PRIMITIVE_POINT:
+      case POSTGIS_PRIMITIVE_MULTIPOINT:
         $types = array('point');
         break;
-      case 'linestring':
-      case 'multilinestring':
+      case POSTGIS_PRIMITIVE_LINESTRING:
+      case POSTGIS_PRIMITIVE_MULTILINESTRING:
         $types = array('path');
         break;
-      case 'polygon':
-      case 'multipolygon':
+      case POSTGIS_PRIMITIVE_POLYGON:
+      case POSTGIS_PRIMITIVE_MULTIPOLYGON:
         $types = array('polygon');
         break;
-      case 'geometrycollection':
+      case POSTGIS_PRIMITIVE_GEOMETRYCOLLECTION:
         $types = array('point', 'path', 'polygon');
         break;
       default:

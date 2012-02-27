@@ -14,6 +14,15 @@ module_load_include('inc', 'postgis', '/includes/postgis.openlayers');
 
 define('POSTGIS_DEFAULT_SRID', 4326);
 
+// Primitive names as used in WKT
+define('POSTGIS_PRIMITIVE_POINT', 'POINT');
+define('POSTGIS_PRIMITIVE_LINESTRING', 'LINESTRING');
+define('POSTGIS_PRIMITIVE_POLYGON', 'POLYGON');
+define('POSTGIS_PRIMITIVE_MULTIPOINT', 'MULTIPOINT');
+define('POSTGIS_PRIMITIVE_MULTILINESTRING', 'MULTILINESTRING');
+define('POSTGIS_PRIMITIVE_MULTIPOLYGON', 'MULTIPOLYGON');
+define('POSTGIS_PRIMITIVE_GEOMETRYCOLLECTION', 'GEOMETRYCOLLECTION');
+
 /**
  * Implements hook_ctools_plugin_api().
  *

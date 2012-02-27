@@ -40,14 +40,14 @@ class PostgisGeometrySet {
    */
   private function isMulti($type){
     switch ($type) {
-      case 'multipoint':
-      case 'multilinestring':
-      case 'multipolygon':
+      case POSTGIS_PRIMITIVE_MULTIPOINT:
+      case POSTGIS_PRIMITIVE_MULTILINESTRING:
+      case POSTGIS_PRIMITIVE_MULTIPOLYGON:
         return TRUE;
-      case 'geometrycollection':
-      case 'point':
-      case 'linestring':
-      case 'polygon':
+      case POSTGIS_PRIMITIVE_GEOMETRYCOLLECTION:
+      case POSTGIS_PRIMITIVE_POINT:
+      case POSTGIS_PRIMITIVE_LINESTRING:
+      case POSTGIS_PRIMITIVE_POLYGON:
         return FALSE;
     }
     throw new PostgisGeometryException(t('Geometry type not supported.'));
@@ -80,7 +80,7 @@ class PostgisGeometrySet {
   }
 
   /**
-   * Returns length of all geometries.
+   * Returns length of all geometries. See PostgisGeometry->length for a more precise definition of length.
    *
    * @param string $unit
    *   Abbreviation of the units, e.g. "km".
@@ -401,14 +401,14 @@ class PostgisGeometry {
         );
       }
 
-      $result_type = drupal_strtolower(drupal_substr($result['st_geometrytype'], 3));
+      $result_type = drupal_strtoupper(drupal_substr($result['st_geometrytype'], 3));
 
       // Return error if geometry type is unexpected.
-      if (($this->type !== 'geometrycollection') && ($result_type != $this->type)) {
+      if (($this->type !== POSTGIS_PRIMITIVE_GEOMETRYCOLLECTION) && ($result_type != $this->type)) {
         return array(
           'error' => 'postgis_typemismatch',
           'message' => t('Wrong geometry type. Got @result, was expecting @type.',
-            array('@result' => drupal_strtoupper($result_type), '@type' => drupal_strtoupper($this->type))),
+            array('@result' => $result_type, '@type' => $this->type)),
           );
       }
     }
@@ -422,10 +422,10 @@ class PostgisGeometry {
   }
 
   /**
-   * Returns length of geometry using ST_Length().
+   * Returns length of geometry using ST_Length(). The perimeter length is returned for areas.
    *
    * @param string $unit
-   *   Abbreviation of the units, e.g. "km".
+   *   Abbreviation of the units, either "km" or "m"
    *
    * @return int
    *   Length in given units.
@@ -434,6 +434,7 @@ class PostgisGeometry {
 
     $geo = is_null($this->wkt) ? $this->geometry : $this->wkt;
 
+    // An implicit conversion to geography is applied which results in the length in meters.
     $result = db_query("SELECT ST_Length(:geo, true)", array(':geo' => $geo))->fetchField();
 
     if ($unit === 'km') {
@@ -445,6 +446,8 @@ class PostgisGeometry {
 
   /**
    * Checks if geometry is empty.
+   *
+   * @return boolean TRUE if the geometry is not yet set.
    */
   function isEmpty() {
     $geo = is_null($this->wkt) ? $this->geometry : $this->wkt;
