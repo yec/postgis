@@ -9,7 +9,7 @@ class PostgisValidationsTestCase extends DrupalUnitTestCase {
   }
 
   public function testPostgisGeometrySetValidation(){
-    $set = new PostgisGeometrySet('point', 4236);
+    $set = new PostgisGeometrySet(POSTGIS_PRIMITIVE_POINT, 4236);
     $result = $set->validate();
     $this->assertTrue($result === NULL, 'An empty set should be valid');
 
@@ -25,7 +25,7 @@ class PostgisValidationsTestCase extends DrupalUnitTestCase {
   }
 
   public function testPostgisGeometrySetParseError(){
-    $set = new PostgisGeometrySet('point', 4236);
+    $set = new PostgisGeometrySet(POSTGIS_PRIMITIVE_POINT, 4236);
     $set->fromText('POINT(9 48)');
     $set->fromText('POINT(11.4 15.8)');
     $result = $set->validate();
@@ -37,7 +37,7 @@ class PostgisValidationsTestCase extends DrupalUnitTestCase {
   }
 
   public function testPostgisGeometryCollectionIgnoresTypes(){
-    $set = new PostgisGeometrySet('geometrycollection', 4236);
+    $set = new PostgisGeometrySet(POSTGIS_PRIMITIVE_GEOMETRYCOLLECTION, 4236);
     $set->fromText('POINT(9 48)');
     $set->fromText('LINESTRING(10 5, 12 14)');
     $set->fromText('POLYGON((10 5, 12 14, 10.4 5, 10 5))');
@@ -46,7 +46,7 @@ class PostgisValidationsTestCase extends DrupalUnitTestCase {
   }
 
   public function testPostgisGeometryCollectionUnpack(){
-    $set = new PostgisGeometrySet('geometrycollection', 4236);
+    $set = new PostgisGeometrySet(POSTGIS_PRIMITIVE_GEOMETRYCOLLECTION, 4236);
     $set->fromText('POINT(9 48)');
     $set->fromText('GEOMETRYCOLLECTION(POLYGON((10 5, 12 14, 10.4 5, 10 5)))');
 
