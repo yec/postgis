@@ -79,4 +79,23 @@ class PostgisSingleGeometries extends DrupalUnitTestCase {
     $geo->fromText($wkt);
     $this->assertTrue($wkt === $geo->getText(), 'Geometry is returned unaltered');
   }
+
+  public function testLength(){
+    $geom = new PostgisGeometry(POSTGIS_PRIMITIVE_LINESTRING, 4236);
+    $geom->fromText('LINESTRING(9 48, 5 10)');
+    $this->assertEqual(4229270, $geom->length('m'), 'Length in meters is correct');
+    $this->assertEqual(4229, $geom->length('km'), 'Length in kilometers is correct');
+
+    $area = new PostgisGeometry(POSTGIS_PRIMITIVE_POLYGON, 4236);
+    $area->fromText('POLYGON((10 5, 12 14, 10.4 5, 10 5))');
+    $this->assertEqual(2074513, $area->length('m'), 'Area perimeter was returned as area length.');
+
+    $exceptionThrown = FALSE;
+    try {
+      $area->length('mi');
+    } catch(PostgisGeometryException $e){
+      $exceptionThrown = TRUE;
+    }
+    $this->assertTrue($exceptionThrown, 'Code refused to calculate length for unknown units.');
+  }
 }

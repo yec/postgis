@@ -437,11 +437,14 @@ class PostgisGeometry {
     // An implicit conversion to geography is applied which results in the length in meters.
     $result = db_query("SELECT ST_Length(:geo, true)", array(':geo' => $geo))->fetchField();
 
-    if ($unit === 'km') {
-      $result = round($result / 1000);
+    switch ($unit) {
+      case 'm':
+        return round($result);
+      case 'km':
+        return round($result / 1000);
+      default:
+        throw new PostgisGeometryException('Only m and km are supported for length retrieval.');
     }
-
-    return $result;
   }
 
   /**
