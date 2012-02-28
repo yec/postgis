@@ -13,7 +13,7 @@ function postgis_openlayers_maps() {
   $widget->api_version = 1;
   $widget->name = 'postgis_widget_map';
   $widget->title = t('PostGIS Widget Map');
-  $widget->description = t('A map used for PostGIS input');
+  $widget->description = t('A map used for PostGIS input (for feature editing only)');
   $widget->data = array(
     'projection' => '900913',
     'width' => '600px',
@@ -42,7 +42,7 @@ function postgis_openlayers_maps() {
   $formatter->api_version = 1;
   $formatter->name = 'postgis_formatter_map';
   $formatter->title = t('PostGIS Formatter Map');
-  $formatter->description = t('A map used for PostGIS output');
+  $formatter->description = t('A map used for PostGIS output (for feature display only)');
   $formatter->data = array(
     'projection' => '900913',
     'width' => '600px',
