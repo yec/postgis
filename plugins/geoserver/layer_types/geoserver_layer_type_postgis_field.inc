@@ -291,12 +291,6 @@ class geoserver_layer_type_postgis_field extends geoserver_layer_type_feature_ty
                 $this->data['options']['sql'] : '',
         '#suffix' => '</div>',
       ),
-      'sld' => array(
-        '#type' => 'textarea',
-        '#title' => t('SLD'),
-        '#default_value' => isset($this->data['options']['sld']) ?
-                $this->data['options']['sld'] : '',
-      ),
     );
   }
 
