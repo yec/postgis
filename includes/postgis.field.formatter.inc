@@ -6,8 +6,9 @@
  */
 
 /**
- * Describes available presentations of postgis fields for output to publicly available website.
- * 
+ * Describes available presentations of postgis fields
+ * for output to publicly available website.
+ *
  * Implements hook_field_formatter_info().
  */
 function postgis_field_formatter_info() {
@@ -24,7 +25,7 @@ function postgis_field_formatter_info() {
     ),
   );
 
-  // Add map if OpenLayers is available to paint the map
+  // Add map if OpenLayers is available to paint the map.
   if (module_exists('openlayers')) {
     $formatters['openlayers'] = array(
       'label' => t('OpenLayers Map'),
@@ -37,8 +38,9 @@ function postgis_field_formatter_info() {
 }
 
 /**
- * Defines a form for customization of presentation to user. This allows to adjust the style of OpenLayers' maps when showing features.
- * 
+ * Defines a form for customization of presentation to user.
+ * This allows to adjust the style of OpenLayers' maps when showing features.
+ *
  * Implements hook_field_formatter_settings_form().
  */
 function postgis_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state) {
@@ -75,7 +77,7 @@ function postgis_field_formatter_settings_form($field, $instance, $view_mode, $f
 
 /**
  * Shows a summary of the fields presentation.
- * 
+ *
  * Implements hook_field_formatter_settings_summary().
  */
 function postgis_field_formatter_settings_summary($field, $instance, $view_mode) {
@@ -99,25 +101,25 @@ function postgis_field_formatter_view($entity_type, $entity, $field, $instance, 
 
   $element = array();
 
-  // Combines possibly multiple values from database to a single container object
+  // Combines multiple values from database to a single container object.
   $set = new PostgisGeometrySet($field['settings']['type'], $field['settings']['srid']);
   $set->fromGeometry($items);
   $wkt = $set->getText();
 
   switch ($display['type']) {
 
-    // Shows geometry as text to user
+    // Shows geometry as text to user.
     case 'wkt':
       $element[]['#markup'] = $wkt;
       break;
 
-    // Shows length of geometry to user
+    // Shows length of geometry to user.
     case 'measurement':
       // TODO: make measurement configurable.
       $element[]['#markup'] = $set->length('km') . ' ' . t('km');
       break;
 
-    // Shows feature of a map
+    // Shows feature of a map.
     case 'openlayers':
       $map_name = $display['settings']['map'] ? $display['settings']['map'] : 'postgis_formatter_map';
       $map = openlayers_map_load($map_name);

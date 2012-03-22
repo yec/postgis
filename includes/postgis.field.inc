@@ -26,7 +26,7 @@ function postgis_field_info() {
 
 /**
  * Form that is shown when a postgis field is added to a content type.
- * 
+ *
  * Implements hook_field_settings_form().
  */
 function postgis_field_settings_form($field, $instance, $has_data) {
@@ -72,10 +72,10 @@ function postgis_field_validate($entity_type, $entity, $field, $instance, $langc
     $set = new PostgisGeometrySet($field['settings']['type'], $field['settings']['srid'], $field['cardinality']);
     $set->fromText($wkt);
 
-    $validationError = $set->validate($field['field_name']);
-    // Add validation error if validation returned an array with error description
-    if (is_array($validationError)) {
-      $errors[$field['field_name']][$langcode][$delta][] = $validationError;
+    $validation_error = $set->validate($field['field_name']);
+    // Add validation error if validation returned an array with description.
+    if (is_array($validation_error)) {
+      $errors[$field['field_name']][$langcode][$delta][] = $validation_error;
     }
   }
 }
@@ -93,8 +93,9 @@ function postgis_field_is_empty($item, $field) {
 
 
 /**
- * Combines entries from multiple items in a single widgets into a single collection.
- * 
+ * Combines entries from multiple items in a single widgets
+ * into a single collection.
+ *
  * Implements hook_field_presave().
  */
 function postgis_field_presave($entity_type, $entity, $field, $instance, $langcode, &$items) {
@@ -119,8 +120,8 @@ function postgis_field_presave($entity_type, $entity, $field, $instance, $langco
       $geometry->fromText($wkt);
       $items = array(array(
         'wkt' => $wkt,
-        'geometry' => $geometry->getGeometry()
-      ));
+        'geometry' => $geometry->getGeometry(),
+      ),);
       break;
     default:
       $items = $set->getItems();
@@ -151,7 +152,7 @@ function postgis_field_update_field($field, $prior_field, $has_data) {
         $prefix = $connection->tablePrefix($table);
         if ($pos = strpos($prefix, '.')) {
           $schema = substr($prefix, 0, $pos);
-          $prefix_table = substr($prefix, $pos+1, strlen($prefix)) . $table;
+          $prefix_table = substr($prefix, $pos + 1, strlen($prefix)) . $table;
         } else {
           $schema = '';
           $prefix_table = $prefix . $table;

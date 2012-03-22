@@ -14,7 +14,7 @@ module_load_include('inc', 'postgis', '/includes/postgis.openlayers');
 
 define('POSTGIS_DEFAULT_SRID', 4326);
 
-// Primitive names as used in WKT
+// Primitive names as used in WKT.
 define('POSTGIS_PRIMITIVE_POINT', 'POINT');
 define('POSTGIS_PRIMITIVE_LINESTRING', 'LINESTRING');
 define('POSTGIS_PRIMITIVE_POLYGON', 'POLYGON');

@@ -82,7 +82,7 @@ function postgis_field_widget_settings_form($field, $instance) {
 
 /**
  * Renders map or text field for WKT in content editing screen.
- * 
+ *
  * Implements hook_field_widget_form().
  */
 function postgis_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
@@ -128,7 +128,8 @@ function postgis_field_widget_form(&$form, &$form_state, $field, $instance, $lan
       'element_id'    => $textarea_id,
       'srid'          => $field['settings']['srid'],
       'feature_types' => $types,
-      // Drupal's unlimited value of -1 is not known to OpenLayers and thus needs to be converted to NULL
+      // Drupal's unlimited value of -1 is not known to OpenLayers
+      // and thus needs to be converted to NULL.
       'feature_limit' => ($field['cardinality'] > 0) ? $field['cardinality'] : NULL,
     ));
 
@@ -142,7 +143,7 @@ function postgis_field_widget_form(&$form, &$form_state, $field, $instance, $lan
     $element[$delta]['wkt'] = array(
       '#type' => 'textarea',
       '#attributes' => array('id' => $textarea_id, 'style' => 'display: none;'),
-      // Using a format that OpenLayers can handle
+      // Using a format that OpenLayers can handle.
       '#default_value' => ($value === 'GEOMETRYCOLLECTION(EMPTY)') ? '' : $value,
       '#required' => $element['#required'],
       '#resizable' => FALSE,

@@ -38,7 +38,7 @@ class PostgisGeometrySet {
    * @param string $type Geometry type
    * @return boolean TRUE if type is a collection.
    */
-  private function isMulti($type){
+  protected function isMulti($type) {
     switch ($type) {
       case POSTGIS_PRIMITIVE_MULTIPOINT:
       case POSTGIS_PRIMITIVE_MULTILINESTRING:
@@ -55,9 +55,10 @@ class PostgisGeometrySet {
 
   /**
    * Validates each geometry.
-   * 
+   *
    * @return array
-   *   Reason array as described in API documentation for hook_field_validate if not valid, otherwise null.
+   *   Reason array as described in API documentation for hook_field_validate
+   *   if not valid, otherwise null.
    */
   function validate() {
     if (($this->cardinality != -1) && ($this->count() > $this->cardinality)) {
@@ -66,21 +67,22 @@ class PostgisGeometrySet {
         'message' => t('Too many geometries. Got @result, was expecting @cardinality.',
           array(
             '@result' => $this->count(),
-            '@cardinality' => $this->cardinality
+            '@cardinality' => $this->cardinality,
           )),
       );
     }
 
     foreach ($this->geometries as $geometry) {
       $result = $geometry->validate();
-      if ($result!==NULL) {
+      if ($result !== NULL) {
         return $result;
       }
     }
   }
 
   /**
-   * Returns length of all geometries. See PostgisGeometry->length for a more precise definition of length.
+   * Returns length of all geometries. See PostgisGeometry->length
+   * for a more precise definition of length.
    *
    * @param string $unit
    *   Abbreviation of the units, e.g. "km".
@@ -140,7 +142,8 @@ class PostgisGeometrySet {
 
 
   /**
-   * Add geometries from text. The existing geometries are kept and the new geometries are added behind.
+   * Add geometries from text. The existing geometries are kept
+   * and the new geometries are added behind.
    * @param $wkt string
    */
   function fromText($wkt) {
@@ -159,7 +162,9 @@ class PostgisGeometrySet {
       if ($this->multi) {
 
         // Convert geometrycollection with single geometries to multi geometry.
-        // For example if OpenLayers sends a single point in a GeometryCollection, the following query would transfer it to a single point in a MultiPoint. This is done of type-compability with the selection geometry column type.
+        // For example if OpenLayers sends a point in a GeometryCollection,
+        // the following query would transfer it to a point in a MultiPoint.
+        // This is done of type-compability with the selection geometry type.
         $wkt = db_query("SELECT ST_AsText(ST_Multi(ST_Collect(a.geom))) AS wkt
           FROM (SELECT (ST_Dump(ST_GeomFromText(:wkt))).geom as geom) AS a",
           array(':wkt' => $wkt))->fetchField();
@@ -219,13 +224,14 @@ class PostgisGeometrySet {
     foreach ($this->geometries as $geometry) {
       $single_wkt = $geometry->getText();
       if (mb_stripos($single_wkt, 'GEOMETRYCOLLECTION(') === 0) {
-        // Remove nested collections
-        $single_wkt = mb_substr($single_wkt, mb_strlen('GEOMETRYCOLLECTION('), mb_strlen($single_wkt)-1-mb_strlen('GEOMETRYCOLLECTION('));
+        // Remove nested collections.
+        $single_wkt = mb_substr($single_wkt, mb_strlen('GEOMETRYCOLLECTION('),
+            mb_strlen($single_wkt) - 1 - mb_strlen('GEOMETRYCOLLECTION('));
       }
       $wkt[] = $single_wkt;
     }
     if (count($wkt) === 0) {
-      // An empty collection needs to contain the string EMPTY to be valid
+      // An empty collection needs to contain the string EMPTY to be valid.
       $wkt[] = 'EMPTY';
     }
     return 'GEOMETRYCOLLECTION(' . implode(',', $wkt) . ')';
@@ -383,7 +389,8 @@ class PostgisGeometry {
    * Validates geometry.
    *
    * @return array
-   *   Reason array as described in API documentation for hook_field_validate if not valid, otherwise null.
+   *   Reason array as described in API documentation for hook_field_validate
+   *   if not valid, otherwise null.
    */
   function validate() {
 
@@ -422,7 +429,8 @@ class PostgisGeometry {
   }
 
   /**
-   * Returns length of geometry using ST_Length(). The perimeter length is returned for areas.
+   * Returns length of geometry using ST_Length().
+   * The perimeter length is returned for areas.
    *
    * @param string $unit
    *   Abbreviation of the units, either "km" or "m"
@@ -434,7 +442,8 @@ class PostgisGeometry {
 
     $geo = is_null($this->wkt) ? $this->geometry : $this->wkt;
 
-    // An implicit conversion to geography is applied which results in the length in meters.
+    // An implicit conversion to geography is applied
+    // which results in the length in meters.
     $result = db_query("SELECT ST_Length(:geo, true)", array(':geo' => $geo))->fetchField();
 
     switch ($unit) {
