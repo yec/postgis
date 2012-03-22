@@ -147,20 +147,28 @@ function postgis_field_update_field($field, $prior_field, $has_data) {
 
       foreach ($tables as $table => $columns) {
 
+        // Use prefix as schema and/or table prefix.
         $prefix = $connection->tablePrefix($table);
+        if ($pos = strpos($prefix, '.')) {
+          $schema = substr($prefix, 0, $pos);
+          $prefix_table = substr($prefix, $pos+1, strlen($prefix)) . $table;
+        } else {
+          $schema = '';
+          $prefix_table = $prefix . $table;
+        }
 
         foreach ($columns as $field => $column) {
 
           db_drop_field($table, $column);
 
           db_query(
-            'SELECT AddGeometryColumn(:prefix, :table, :column, :srid, :type, 2)',
+            'SELECT AddGeometryColumn(:schema, :table, :column, :srid, :type, 2)',
             array(
-              ':prefix' => trim($prefix, '.'),
-              ':table' => $table,
+              ':schema' => $schema,
+              ':table'  => $prefix_table,
               ':column' => $column,
-              ':srid' => $srid,
-              ':type' => $type,
+              ':srid'   => $srid,
+              ':type'   => $type,
             )
           );
 
