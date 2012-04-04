@@ -8,9 +8,9 @@
 /**
  * Adds a geometry column to the field definition.
  *
- * Implements hook_field_schema().
+ * Implements hook_geofield_schema().
  */
-function postgis_field_schema($field) {
+function postgis_geofield_schema($field) {
 
   return array(
     'columns' => array(

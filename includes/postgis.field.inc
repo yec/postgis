@@ -6,13 +6,13 @@
  */
 
 /**
- * Implements hook_field_info().
+ * Implements hook_geofield_info().
  */
-function postgis_field_info() {
+function postgis_geofield_info() {
   return array(
     'postgis' => array(
-      'label' => t('Geospatial data'),
-      'description' => t('This field stores geospatial data in the database.'),
+      'label' => t('PostGIS'),
+      'description' => t('Store geospatial data in a PostGIS database.'),
       'settings' => array(
         'type' => 'point',
         'srid' => POSTGIS_DEFAULT_SRID,
@@ -27,9 +27,9 @@ function postgis_field_info() {
 /**
  * Form that is shown when a postgis field is added to a content type.
  *
- * Implements hook_field_settings_form().
+ * Implements hook_geofield_settings_form().
  */
-function postgis_field_settings_form($field, $instance, $has_data) {
+function postgis_geofield_settings_form($field, $instance, $has_data) {
 
   $types = array(
     POSTGIS_PRIMITIVE_POINT => t('Point'),
@@ -45,7 +45,7 @@ function postgis_field_settings_form($field, $instance, $has_data) {
     '#type' => 'select',
     '#title' => t('Geometry type'),
     '#options' => $types,
-    '#default_value' => $field['settings']['type'],
+    '#default_value' => isset($field['settings']['type']) ? $field['settings']['type'] : '',
     '#description' => t('Choose the geometry that best describes the information you are storing. "Point" is suitable for addresses and other fixed points, but you may also choose "Linestring" for lines or tracks, and "Polygon" for shapes and areas. If you have different types of geometry choose "Geometry Collection". To store multiple geometries of the same type in one table row the "Multi" geometry types and "Geometry Collection" are available.'),
     '#disabled' => $has_data,
   );
@@ -53,7 +53,7 @@ function postgis_field_settings_form($field, $instance, $has_data) {
   $form['srid'] = array(
     '#type' => 'textfield',
     '#title' => t('SRID'),
-    '#default_value' => $field['settings']['srid'],
+    '#default_value' => isset($field['settings']['srid']) ? $field['settings']['srid'] : '',
     '#description' => t('Select the map projection that shall be used to map the globe to a plain surface. In general 4326 fits the whole globe pretty well but local projections might give more precise results for specific areas (at the cost of more distortions in other areas).'),
     '#disabled' => $has_data,
   );
@@ -83,7 +83,7 @@ function postgis_field_validate($entity_type, $entity, $field, $instance, $langc
 /**
  * Implements hook_field_is_empty().
  */
-function postgis_field_is_empty($item, $field) {
+function postgis_geofield_is_empty($item, $field) {
 
   $set = new PostgisGeometrySet($field['settings']['type'], $field['settings']['srid']);
   $set->fromText($item['wkt']);
@@ -96,9 +96,9 @@ function postgis_field_is_empty($item, $field) {
  * Combines entries from multiple items in a single widgets
  * into a single collection.
  *
- * Implements hook_field_presave().
+ * Implements hook_geofield_presave().
  */
-function postgis_field_presave($entity_type, $entity, $field, $instance, $langcode, &$items) {
+function postgis_geofield_presave($entity_type, $entity, $field, $instance, $langcode, $items) {
   $type = $field['settings']['type'];
   $srid = $field['settings']['srid'];
 
@@ -126,56 +126,51 @@ function postgis_field_presave($entity_type, $entity, $field, $instance, $langco
     default:
       $items = $set->getItems();
   }
+
+  return $items;
 }
 
 
 /**
- * Implements hook_field_update_field().
+ * Implements hook_geofield_update_field().
  *
  * Keep table "geometry_columns" up to date.
  *
  */
-function postgis_field_update_field($field, $prior_field, $has_data) {
+function postgis_geofield_update_field($field, $prior_field, $has_data) {
 
   if (!$has_data && isset($field['settings']['srid'])) {
 
     $srid = $field['settings']['srid'];
-    $type = drupal_strtoupper($field['settings']['type']);
-    $storage = field_sql_storage_field_storage_details($field);
+    $type = $field['settings']['type'];
     $connection = Database::getConnection();
+    $schema = '';
+    $prefix = $connection->tablePrefix('field_data_' . $field['field_name']);
+    $column = $field['field_name'] . '_geometry';
+    // Use prefix as schema and/or table prefix.
+    if ($pos = strpos($prefix, '.')) {
+      $schema = substr($prefix, 0, $pos);
+      $prefix = substr($prefix, $pos + 1, strlen($prefix));
+    }
 
-    foreach ($storage['sql'] as $tables) {
+    foreach (array('data_', 'revision_') as $table) {
 
-      foreach ($tables as $table => $columns) {
+      $table = 'field_' . $table . $field['field_name'];
 
-        // Use prefix as schema and/or table prefix.
-        $prefix = $connection->tablePrefix($table);
-        if ($pos = strpos($prefix, '.')) {
-          $schema = substr($prefix, 0, $pos);
-          $prefix_table = substr($prefix, $pos + 1, strlen($prefix)) . $table;
-        } else {
-          $schema = '';
-          $prefix_table = $prefix . $table;
-        }
+      db_drop_field($table, $column);
 
-        foreach ($columns as $field => $column) {
+      db_query(
+        'SELECT AddGeometryColumn(:schema, :table, :column, :srid, :type, 2)',
+        array(
+          ':schema' => $schema,
+          ':table'  => $prefix . $table,
+          ':column' => $column,
+          ':srid'   => $srid,
+          ':type'   => $type,
+        )
+      );
 
-          db_drop_field($table, $column);
-
-          db_query(
-            'SELECT AddGeometryColumn(:schema, :table, :column, :srid, :type, 2)',
-            array(
-              ':schema' => $schema,
-              ':table'  => $prefix_table,
-              ':column' => $column,
-              ':srid'   => $srid,
-              ':type'   => $type,
-            )
-          );
-
-          db_query('CREATE INDEX ' . $table . '_' . $column . '_idx ON {' . $table . '} USING GIST ( ' . $column . ' )');
-        }
-      }
+      db_query('CREATE INDEX ' . $table . '_' . $column . '_idx ON {' . $table . '} USING GIST ( ' . $column . ' )');
     }
   }
 }

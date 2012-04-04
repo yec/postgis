@@ -95,16 +95,16 @@ function postgis_field_formatter_settings_summary($field, $instance, $view_mode)
 }
 
 /**
- * Implements hook_field_formatter_view().
+ * Implements hook_geofield_formatter_view().
  */
-function postgis_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+function postgis_geofield_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
 
   $element = array();
 
   // Combines multiple values from database to a single container object.
   $set = new PostgisGeometrySet($field['settings']['type'], $field['settings']['srid']);
   $set->fromGeometry($items);
-  $wkt = $set->getText();
+  return $set->getItems();
 
   switch ($display['type']) {
 
