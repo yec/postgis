@@ -10,14 +10,16 @@
  */
 function postgis_field_widget_info() {
 
+  $behaviors = array(
+    'multiple values' => FIELD_BEHAVIOR_CUSTOM,
+    'default value'   => FIELD_BEHAVIOR_NONE,
+  );
+
   $widgets = array(
     'wkt' => array(
       'label' => t('Textfield'),
       'field types' => array('postgis'),
-      'behaviors' => array(
-        'multiple values' => FIELD_BEHAVIOR_CUSTOM,
-        'default value'   => FIELD_BEHAVIOR_NONE,
-      ),
+      'behaviors' => $behaviors,
     ),
   );
 
@@ -27,12 +29,10 @@ function postgis_field_widget_info() {
       'field types' => array('postgis'),
       'settings' => array(
         'map'      => 'postgis_widget_map',
-        'behavior' => 'openlayers_behavior_drawfeatures',
+        'behavior' => module_exists('ole') ? 
+          'openlayers_behavior_ole' : 'openlayers_behavior_drawfeatures',
       ),
-      'behaviors' => array(
-        'multiple values' => FIELD_BEHAVIOR_CUSTOM,
-        'default value'   => FIELD_BEHAVIOR_NONE,
-      ),
+      'behaviors' => $behaviors,
     );
   }
 
@@ -65,7 +65,13 @@ function postgis_field_widget_settings_form($field, $instance) {
     foreach ($behaviors as $index => $behavior) {
       $behaviors[$index] = $behavior['title'];
     }
-    $behavior = isset($settings['behavior']) ? $settings['behavior'] : 'openlayers_behavior_drawfeatures';
+    
+    if (isset($settings['behavior'])) {
+      $behavior = $settings['behavior'];
+    } else {
+      $behavior = module_exists('ole') ? 
+          'openlayers_behavior_ole' : 'openlayers_behavior_drawfeatures';
+    }
 
     $form['behavior'] = array(
       '#type' => 'select',
