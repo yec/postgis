@@ -30,7 +30,6 @@ function postgis_openlayers_maps() {
     ),
     'behaviors' => array(
       'openlayers_behavior_panzoombar' => array(),
-      'openlayers_behavior_drawfeatures' => array(),
       'openlayers_behavior_keyboarddefaults' => array(),
     ),
     'layers' => array(
