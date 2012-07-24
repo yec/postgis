@@ -91,7 +91,6 @@ function postgis_field_is_empty($item, $field) {
   return $set->isEmpty();
 }
 
-
 /**
  * Combines entries from multiple items in a single widgets
  * into a single collection.
@@ -128,7 +127,6 @@ function postgis_field_presave($entity_type, $entity, $field, $instance, $langco
   }
 }
 
-
 /**
  * Implements hook_field_update_field().
  *
@@ -137,11 +135,13 @@ function postgis_field_presave($entity_type, $entity, $field, $instance, $langco
  */
 function postgis_field_update_field($field, $prior_field, $has_data) {
 
-  if (!$has_data && isset($field['settings']['srid'])) {
+  if (!$has_data && $field['type'] == 'postgis') {
+
+    _postgis_field_storage_db_set_active($field);
 
     $srid = $field['settings']['srid'];
     $type = drupal_strtoupper($field['settings']['type']);
-    $storage = field_sql_storage_field_storage_details($field);
+    $storage = postgis_field_storage_details($field);
     $connection = Database::getConnection();
 
     foreach ($storage['sql'] as $tables) {
@@ -177,6 +177,7 @@ function postgis_field_update_field($field, $prior_field, $has_data) {
         }
       }
     }
+    db_set_active();
   }
 }
 

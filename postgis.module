@@ -9,6 +9,7 @@ module_load_include('inc', 'postgis', '/includes/postgis.feeds');
 module_load_include('inc', 'postgis', '/includes/postgis.field');
 module_load_include('inc', 'postgis', '/includes/postgis.field.formatter');
 module_load_include('inc', 'postgis', '/includes/postgis.field.widget');
+module_load_include('inc', 'postgis', '/includes/postgis.field.storage');
 module_load_include('inc', 'postgis', '/includes/postgis.geometry');
 module_load_include('inc', 'postgis', '/includes/postgis.openlayers');
 
@@ -22,6 +23,14 @@ define('POSTGIS_PRIMITIVE_MULTIPOINT', 'MULTIPOINT');
 define('POSTGIS_PRIMITIVE_MULTILINESTRING', 'MULTILINESTRING');
 define('POSTGIS_PRIMITIVE_MULTIPOLYGON', 'MULTIPOLYGON');
 define('POSTGIS_PRIMITIVE_GEOMETRYCOLLECTION', 'GEOMETRYCOLLECTION');
+
+function postgis_enable() {
+  variable_set('field_storage_default', 'postgis_field_sql_storage');
+}
+
+function postgis_disable() {
+  variable_set('field_storage_default', 'field_sql_storage');
+}
 
 /**
  * Implements hook_ctools_plugin_api().

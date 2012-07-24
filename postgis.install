@@ -35,6 +35,10 @@ function postgis_requirements($phase) {
     return array();
   }
 
+  $field = array('type' => 'postgis');
+
+  _postgis_field_storage_db_set_active($field);
+
   $requirements = array();
   // Ensure translations don't break at install time.
   $t = get_t();
@@ -81,6 +85,8 @@ function postgis_requirements($phase) {
         'severity' => $severity,
       );
   }
+
+  db_set_active();
 
   return $requirements;
 }
