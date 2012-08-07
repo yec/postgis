@@ -86,6 +86,7 @@ function postgis_geoserver_layer_type_form($form, &$form_state) {
   $options = $form['layer']['data']['options'];
   $field = explode('.', $options['field']['#value']);
   $layer = new geoserver_layer_type_postgis_field();
+  $layer->name = $form['layer']['basics']['name']['#value'];
   $layer->load_field($field[0], $field[1], $field[2]);
 
   $options['srid']['#value'] = $layer->data['options']['srid'];
