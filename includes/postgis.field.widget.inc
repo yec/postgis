@@ -163,7 +163,7 @@ function postgis_field_widget_form(&$form, &$form_state, $field, $instance, $lan
   else {
     $element[$delta]['wkt'] = array(
       '#title' => t('Well Known Text'),
-      '#type' => 'textfield',
+      '#type' => 'textarea',
       '#default_value' => $value,
       '#required' => $element['#required'],
     );
