@@ -72,37 +72,3 @@ function postgis_help($path, $arg) {
   }
 }
 
-/**
- * AJAX callback; fills the form of a PostGIS GeoServer layer
- * with default values of a given field instance.
- *
- * @param array $form
- * @param array $form_state
- *
- * @return array
- */
-function postgis_geoserver_layer_type_form($form, &$form_state) {
-
-  $options = $form['layer']['data']['options'];
-  $field = explode('.', $options['field']['#value']);
-  $layer = new geoserver_layer_type_postgis_field();
-  $layer->name = $form['layer']['basics']['name']['#value'];
-  $layer->load_field($field[0], $field[1], $field[2]);
-
-  $options['srid']['#value'] = $layer->data['options']['srid'];
-  $options['geometry_name']['#value'] = $layer->data['options']['geometry_name'];
-  $options['geometry_type']['#value'] = $layer->data['options']['geometry_type'];
-  $options['bounding_box']['minx']['#value'] = $layer->data['options']['bounding_box']['minx'];
-  $options['bounding_box']['miny']['#value'] = $layer->data['options']['bounding_box']['miny'];
-  $options['bounding_box']['maxx']['#value'] = $layer->data['options']['bounding_box']['maxx'];
-  $options['bounding_box']['maxy']['#value'] = $layer->data['options']['bounding_box']['maxy'];
-  $options['sql']['#value'] = $layer->data['options']['sql'];
-
-  return array(
-    $options['srid'],
-    $options['geometry_name'],
-    $options['geometry_type'],
-    $options['bounding_box'],
-    $options['sql'],
-  );
-}

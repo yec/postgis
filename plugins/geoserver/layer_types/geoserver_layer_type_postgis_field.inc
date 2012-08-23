@@ -133,10 +133,15 @@ class geoserver_layer_type_postgis_field extends geoserver_layer_type_feature_ty
   /**
    * Load field configuration.
    */
-  function load_field($entity_type, $bundle_name, $field_name) {
+  function load_source($source) {
 
-    $field = field_info_field($field_name);
-    $bbox = postgis_field_extent($field);
+    $this->source = $source;
+    $source_array = explode('.', $source);
+    $entity_type  = $source_array[0];
+    $bundle_name  = $source_array[1];
+    $field_name   = $source_array[2];
+    $field        = field_info_field($field_name);
+    $bbox         = postgis_field_extent($field);
 
     $this->data['options']['srid'] = $field['settings']['srid'];
     $this->data['options']['bounding_box']['minx'] = $bbox->minx;
@@ -191,14 +196,77 @@ CREATE VIEW $name AS SELECT $entity_type.nid as id, $entity_type.title, field_da
   /**
    * Options form which generates layers
    */
-  function options_form() {
+  function options_form($form = array()) {
 
-    $field_options = array('');
-    $fields = field_info_instances();
+    if (empty($form)) {
 
-    foreach ($fields as $entity_type => $bundles) {
+      return array(
+        'srid' => array(
+          '#type' => 'textfield',
+          '#title' => t('Projection'),
+          '#prefix' => '<div id="geoserver_layer_type_postgis_field">',
+          '#default_value' => isset($this->data['options']['srid']) ?
+                  $this->data['options']['srid'] : '',
+          '#value' =>  isset($this->data['options']['srid']) ?
+                  $this->data['options']['srid'] : '',
+        ),
+        'bounding_box' => array(
+          '#type' => 'fieldset',
+          '#title' => t('Bounding Box'),
+          '#collapsible' => TRUE,
+          '#collapsed' => TRUE,
+          'minx' => array(
+            '#type' => 'textfield',
+            '#title' => t('Min X'),
+            '#default_value' => isset($this->data['options']['bounding_box']['minx']) ?
+                    $this->data['options']['bounding_box']['minx'] : '',
+          ),
+          'miny' => array(
+            '#type' => 'textfield',
+            '#title' => t('Min Y'),
+            '#default_value' => isset($this->data['options']['bounding_box']['miny']) ?
+                    $this->data['options']['bounding_box']['miny'] : '',
+          ),
+          'maxx' => array(
+            '#type' => 'textfield',
+            '#title' => t('Max X'),
+            '#default_value' => isset($this->data['options']['bounding_box']['maxx']) ?
+                    $this->data['options']['bounding_box']['maxx'] : '',
+          ),
+          'maxy' => array(
+            '#type' => 'textfield',
+            '#title' => t('Max Y'),
+            '#default_value' => isset($this->data['options']['bounding_box']['maxy']) ?
+                    $this->data['options']['bounding_box']['maxy'] : '',
+          ),
+        ),
+        'sql' => array(
+          '#type' => 'textarea',
+          '#title' => t('SQL'),
+          '#default_value' => isset($this->data['options']['sql']) ?
+                  $this->data['options']['sql'] : '',
+          '#suffix' => '</div>',
+        ),
+      );
 
-      $info = entity_get_info($entity_type);
+    } else {
+
+      $form['srid']['#value'] = $this->data['options']['srid'];
+      $form['bounding_box']['minx']['#value'] = $this->data['options']['bounding_box']['minx'];
+      $form['bounding_box']['miny']['#value'] = $this->data['options']['bounding_box']['miny'];
+      $form['bounding_box']['maxx']['#value'] = $this->data['options']['bounding_box']['maxx'];
+      $form['bounding_box']['maxy']['#value'] = $this->data['options']['bounding_box']['maxy'];
+      $form['sql']['#value'] = $this->data['options']['sql'];
+
+      return array($form['srid'], $form['bounding_box'], $form['sql']);
+    }
+  }
+
+  function get_sources() {
+
+    $sources = array('');
+
+    foreach (field_info_instances() as $entity_type => $bundles) {
 
       foreach ($bundles as $bundle_name => $fields) {
 
@@ -207,72 +275,16 @@ CREATE VIEW $name AS SELECT $entity_type.nid as id, $entity_type.title, field_da
           $field = field_info_field($field_name);
 
           if ($field['type'] === 'postgis') {
-            $key = $entity_type . '.' . $bundle_name . '.' . $field_name;
-            $value = $info['bundles'][$bundle_name]['label'] . ' (' . $field_name . ')';
-            $field_options[$info['label']][$key] = $value;
+            $info = entity_get_info($entity_type);
+            $key = "$entity_type.$bundle_name.$field_name";
+            $value = "{$info['bundles'][$bundle_name]['label']} ($field_name)";
+            $sources[$info['label']][$key] = $value;
             break;
           }
         }
       }
     }
-
-    return array(
-      'field' => array(
-        '#type' => 'select',
-        '#title' => t('Field'),
-        '#options' => $field_options,
-        '#default_value' => isset($this->data['options']['field']) ?
-                $this->data['options']['field'] : '',
-        '#ajax' => array(
-          'callback' => 'postgis_geoserver_layer_type_form',
-          'wrapper' => 'geoserver_layer_type_postgis_field',
-        ),
-      ),
-      'srid' => array(
-        '#type' => 'textfield',
-        '#title' => t('Projection'),
-        '#prefix' => '<div id="geoserver_layer_type_postgis_field">',
-        '#default_value' => isset($this->data['options']['srid']) ?
-                $this->data['options']['srid'] : '',
-      ),
-      'bounding_box' => array(
-        '#type' => 'fieldset',
-        '#title' => t('Bounding Box'),
-        '#collapsible' => TRUE,
-        '#collapsed' => TRUE,
-        'minx' => array(
-          '#type' => 'textfield',
-          '#title' => t('Min X'),
-          '#default_value' => isset($this->data['options']['bounding_box']['minx']) ?
-                  $this->data['options']['bounding_box']['minx'] : '',
-        ),
-        'miny' => array(
-          '#type' => 'textfield',
-          '#title' => t('Min Y'),
-          '#default_value' => isset($this->data['options']['bounding_box']['miny']) ?
-                  $this->data['options']['bounding_box']['miny'] : '',
-        ),
-        'maxx' => array(
-          '#type' => 'textfield',
-          '#title' => t('Max X'),
-          '#default_value' => isset($this->data['options']['bounding_box']['maxx']) ?
-                  $this->data['options']['bounding_box']['maxx'] : '',
-        ),
-        'maxy' => array(
-          '#type' => 'textfield',
-          '#title' => t('Max Y'),
-          '#default_value' => isset($this->data['options']['bounding_box']['maxy']) ?
-                  $this->data['options']['bounding_box']['maxy'] : '',
-        ),
-      ),
-      'sql' => array(
-        '#type' => 'textarea',
-        '#title' => t('SQL'),
-        '#default_value' => isset($this->data['options']['sql']) ?
-                $this->data['options']['sql'] : '',
-        '#suffix' => '</div>',
-      ),
-    );
+    return $sources;
   }
 
   /**
