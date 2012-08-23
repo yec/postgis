@@ -10,17 +10,10 @@
  */
 function postgis_field_widget_info() {
 
+  $widgets   = array();
   $behaviors = array(
     'multiple values' => FIELD_BEHAVIOR_CUSTOM,
     'default value'   => FIELD_BEHAVIOR_NONE,
-  );
-
-  $widgets = array(
-    'wkt' => array(
-      'label' => t('Textfield'),
-      'field types' => array('postgis'),
-      'behaviors' => $behaviors,
-    ),
   );
 
   if (module_exists('openlayers')) {
@@ -35,6 +28,12 @@ function postgis_field_widget_info() {
       'behaviors' => $behaviors,
     );
   }
+  
+  $widgets['wkt'] = array(
+    'label' => t('Textfield'),
+    'field types' => array('postgis'),
+    'behaviors' => $behaviors,
+  );
 
   return $widgets;
 }
