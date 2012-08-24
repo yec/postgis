@@ -29,11 +29,12 @@ function postgis_openlayers_maps() {
       'maxExtent' => openlayers_get_extent('900913'),
     ),
     'behaviors' => array(
-      'openlayers_behavior_panzoombar' => array(),
       'openlayers_behavior_keyboarddefaults' => array(),
+      'openlayers_behavior_navigation' => array(),
+      'openlayers_behavior_panzoombar' => array(),
     ),
     'layers' => array(
-      'osm_mapnik',
+      'osm_mapnik' => 'osm_mapnik',
     ),
   );
 
@@ -57,16 +58,21 @@ function postgis_openlayers_maps() {
       'maxExtent' => openlayers_get_extent('900913'),
     ),
     'behaviors' => array(
-      'openlayers_behavior_panzoombar' => array(),
       'openlayers_behavior_keyboarddefaults' => array(),
+      'openlayers_behavior_navigation' => array(),
+      'openlayers_behavior_panzoombar' => array(),
       'openlayers_behavior_zoomtolayer' => array(
-        'zoomtolayer' => 'postgis_formatter_layer',
-        'point_zoom_level' => 5,
+        'zoomtolayer' => array(
+          'postgis_formatter_layer' => 'postgis_formatter_layer',
+          'osm_mapnik' => 0,
+        ),
+        'point_zoom_level' => '10',
+        'zoomtolayer_scale' => '1',
       ),
     ),
     'layers' => array(
-      'postgis_formatter_layer',
-      'osm_mapnik',
+      'osm_mapnik' => 'osm_mapnik',
+      'postgis_formatter_layer' => 'postgis_formatter_layer',
     ),
   );
 
