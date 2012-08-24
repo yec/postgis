@@ -9,6 +9,9 @@
  * Implements hook_field_info().
  */
 function postgis_field_info() {
+
+  $default = module_exists('openlayers') ? 'openlayers' : 'wkt';
+
   return array(
     'postgis' => array(
       'label' => t('Geospatial data'),
@@ -18,8 +21,8 @@ function postgis_field_info() {
         'srid' => POSTGIS_DEFAULT_SRID,
       ),
       'instance_settings' => array(),
-      'default_widget' => 'wkt',
-      'default_formatter' => 'wkt',
+      'default_widget' => $default,
+      'default_formatter' => $default,
     ),
   );
 }

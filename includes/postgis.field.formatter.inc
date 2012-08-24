@@ -13,17 +13,7 @@
  */
 function postgis_field_formatter_info() {
 
-  $formatters = array(
-    'wkt' => array(
-      'label' => t('Well Known Text (WKT)'),
-      'field types' => array('postgis'),
-    ),
-    'measurement' => array(
-      'label' => t('Measurement'),
-      'field types' => array('postgis'),
-      'settings' => array('type' => 'length'),
-    ),
-  );
+  $formatters = array();
 
   // Add map if OpenLayers is available to paint the map.
   if (module_exists('openlayers')) {
@@ -33,6 +23,16 @@ function postgis_field_formatter_info() {
       'settings' => array('map' => 'postgis_formatter_map'),
     );
   }
+
+  $formatters['measurement'] = array(
+    'label' => t('Measurement'),
+    'field types' => array('postgis'),
+    'settings' => array('type' => 'length'),
+  );
+  $formatters['wkt'] = array(
+    'label' => t('Well Known Text (WKT)'),
+    'field types' => array('postgis'),
+  );
 
   return $formatters;
 }
