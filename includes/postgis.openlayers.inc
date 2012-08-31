@@ -29,7 +29,6 @@ function postgis_openlayers_maps() {
       'maxExtent' => openlayers_get_extent('900913'),
     ),
     'behaviors' => array(
-      'openlayers_behavior_keyboarddefaults' => array(),
       'openlayers_behavior_navigation' => array(),
       'openlayers_behavior_panzoombar' => array(),
     ),
