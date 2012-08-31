@@ -77,7 +77,7 @@ function postgis_field_widget_settings_form($field, $instance) {
       '#title' => t('OpenLayers Behavior'),
       '#default_value' => $behavior,
       '#options' => $behaviors,
-      '#description' => t('Select an OpenLayers behavior which handles drawing of features. Usually you want “Draw Features” to be selected here.'),
+      '#description' => t('Select an OpenLayers behavior which handles drawing of features. Usually you want “Draw Features” or the more capable “<a href="http://drupal.org/project/ole">OpenLayers Editor</a>” to be selected here.'),
     );
 
   }
