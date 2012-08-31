@@ -8,7 +8,7 @@
  * Define the Ctools plugin options.
  */
 $plugin = array(
-  'title' => t('PostGIS'),
+  'title' => t('PostGIS Field'),
   'description' => t('An entity containing a PostGIS field.'),
   'layer_type' => array(
     'file' => 'geoserver_layer_type_postgis_field.inc',
@@ -207,8 +207,6 @@ CREATE VIEW $name AS SELECT $entity_type.nid as id, $entity_type.title, field_da
           '#prefix' => '<div id="geoserver_layer_type_postgis_field">',
           '#default_value' => isset($this->data['options']['srid']) ?
                   $this->data['options']['srid'] : '',
-          '#value' =>  isset($this->data['options']['srid']) ?
-                  $this->data['options']['srid'] : '',
         ),
         'bounding_box' => array(
           '#type' => 'fieldset',
@@ -262,7 +260,7 @@ CREATE VIEW $name AS SELECT $entity_type.nid as id, $entity_type.title, field_da
     }
   }
 
-  function get_sources() {
+  static function get_sources() {
 
     $sources = array('');
 
