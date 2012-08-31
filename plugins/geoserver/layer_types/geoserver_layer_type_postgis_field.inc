@@ -135,30 +135,32 @@ class geoserver_layer_type_postgis_field extends geoserver_layer_type_feature_ty
    */
   function load_source($source) {
 
-    $this->source = $source;
     $source_array = explode('.', $source);
     $entity_type  = $source_array[0];
     $bundle_name  = $source_array[1];
     $field_name   = $source_array[2];
+    $sql_name     = 'geoserver_' . $this->name . '_view';
+    $sql          = $this->get_sql($entity_type, $bundle_name, $field_name, $sql_name);
     $field        = field_info_field($field_name);
     $bbox         = postgis_field_extent($field);
 
     $this->data['options']['srid'] = $field['settings']['srid'];
+    $this->data['options']['sql_name'] = $sql_name;
+    $this->data['options']['sql'] = $sql;
     $this->data['options']['bounding_box']['minx'] = $bbox->minx;
     $this->data['options']['bounding_box']['miny'] = $bbox->miny;
     $this->data['options']['bounding_box']['maxx'] = $bbox->maxx;
     $this->data['options']['bounding_box']['maxy'] = $bbox->maxy;
-    $this->data['options']['sql'] = $this->get_sql($entity_type, $bundle_name, $field_name);
   }
 
   /**
    * Get layer SQL definition.
    */
-  protected function get_sql($entity_type, $bundle_name, $field_name) {
+  protected function get_sql($entity_type, $bundle_name, $field_name, $sql_name) {
 
     $connection = Database::getConnection();
     $prefix = $connection->tablePrefix();
-    $name = $prefix . 'geoserver_' . $this->name . '_view';
+    $name = $prefix . $sql_name;
     $sql = array(
       'select' => array("DROP VIEW IF EXISTS $name;
 CREATE VIEW $name AS SELECT $entity_type.nid as id, $entity_type.title, field_data_$field_name.delta"),
@@ -208,11 +210,24 @@ CREATE VIEW $name AS SELECT $entity_type.nid as id, $entity_type.title, field_da
           '#default_value' => isset($this->data['options']['srid']) ?
                   $this->data['options']['srid'] : '',
         ),
+        'sql_name' => array(
+          '#type' => 'textfield',
+          '#title' => t('SQL View Name'),
+          '#default_value' => isset($this->data['options']['sql_name']) ?
+                  $this->data['options']['sql_name'] : '',
+        ),
+        'sql' => array(
+          '#type' => 'textarea',
+          '#title' => t('SQL'),
+          '#default_value' => isset($this->data['options']['sql']) ?
+                  $this->data['options']['sql'] : '',
+        ),
         'bounding_box' => array(
           '#type' => 'fieldset',
           '#title' => t('Bounding Box'),
           '#collapsible' => TRUE,
           '#collapsed' => TRUE,
+          '#suffix' => '</div>',
           'minx' => array(
             '#type' => 'textfield',
             '#title' => t('Min X'),
@@ -238,25 +253,19 @@ CREATE VIEW $name AS SELECT $entity_type.nid as id, $entity_type.title, field_da
                     $this->data['options']['bounding_box']['maxy'] : '',
           ),
         ),
-        'sql' => array(
-          '#type' => 'textarea',
-          '#title' => t('SQL'),
-          '#default_value' => isset($this->data['options']['sql']) ?
-                  $this->data['options']['sql'] : '',
-          '#suffix' => '</div>',
-        ),
       );
 
     } else {
 
       $form['srid']['#value'] = $this->data['options']['srid'];
+      $form['sql_name']['#value'] = $this->data['options']['sql_name'];
+      $form['sql']['#value'] = $this->data['options']['sql'];
       $form['bounding_box']['minx']['#value'] = $this->data['options']['bounding_box']['minx'];
       $form['bounding_box']['miny']['#value'] = $this->data['options']['bounding_box']['miny'];
       $form['bounding_box']['maxx']['#value'] = $this->data['options']['bounding_box']['maxx'];
       $form['bounding_box']['maxy']['#value'] = $this->data['options']['bounding_box']['maxy'];
-      $form['sql']['#value'] = $this->data['options']['sql'];
 
-      return array($form['srid'], $form['bounding_box'], $form['sql']);
+      return array($form['srid'], $form['sql_name'], $form['sql'], $form['bounding_box']);
     }
   }
 
