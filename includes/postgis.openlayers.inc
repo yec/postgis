@@ -25,6 +25,8 @@ function postgis_openlayers_maps() {
         'zoom' => '2',
       ),
     ),
+    'image_path' => drupal_get_path('module', 'openlayers') . '/themes/default_dark/img/',
+    'css_path' => drupal_get_path('module', 'openlayers') . '/themes/default_dark/style.css',
     'options' => array(
       'maxExtent' => openlayers_get_extent('900913'),
     ),
@@ -53,6 +55,8 @@ function postgis_openlayers_maps() {
         'zoom' => '2',
       ),
     ),
+    'image_path' => drupal_get_path('module', 'openlayers') . '/themes/default_dark/img/',
+    'css_path' => drupal_get_path('module', 'openlayers') . '/themes/default_dark/style.css',
     'options' => array(
       'maxExtent' => openlayers_get_extent('900913'),
     ),
