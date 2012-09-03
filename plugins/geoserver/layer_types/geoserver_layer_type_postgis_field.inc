@@ -103,6 +103,15 @@ class geoserver_layer_type_postgis_field extends geoserver_layer_type_feature_ty
         'nativeName' => 'geoserver_' . $this->name . '_view',
         'namespace'  => array('name' => $this->workspace),
         'title'      => $this->title,
+        // Info about where the data comes from in Drupal,
+        // required to check for access permissions.
+        'metadataLinks' => array(
+          'metadataLink' => array(
+            'metadataType' => 'other',
+            'type'    => 'application/x-drupal-source',
+            'content' => 'http://drupal.org/' . $this->data['source'],
+          ),
+        ),
         'nativeCRS'  => isset($options['srid']) ? 'EPSG:' . $options['srid'] : '',
         'srs'        => isset($options['srid']) ? 'EPSG:' . $options['srid'] : '',
         'nativeBoundingBox' => array(
