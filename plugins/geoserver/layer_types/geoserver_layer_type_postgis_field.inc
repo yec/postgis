@@ -213,7 +213,7 @@ CREATE VIEW $name AS SELECT $entity_type.nid as id, $entity_type.title, field_da
 
       return array(
         'srid' => array(
-          '#type' => 'textfield',
+          '#type' => 'hidden',
           '#title' => t('Projection'),
           '#prefix' => '<div id="geoserver_layer_type_postgis_field">',
           '#default_value' => isset($this->data['options']['srid']) ?
