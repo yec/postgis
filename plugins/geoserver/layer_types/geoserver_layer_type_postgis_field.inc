@@ -172,8 +172,8 @@ class geoserver_layer_type_postgis_field extends geoserver_layer_type_feature_ty
     $name = $prefix . $sql_name;
     $sql = array(
       'select' => array("DROP VIEW IF EXISTS $name;
-CREATE VIEW $name AS SELECT $entity_type.nid as id, $entity_type.title, field_data_$field_name.delta"),
-      'from' => array("FROM $prefix$entity_type"),
+CREATE VIEW $name AS SELECT $entity_type.nid as id, $entity_type.title, field_data_$field_name.delta, field_data_$field_name.{$field_name}_geometry"),
+      'from' => array("FROM $prefix$entity_type LEFT JOIN field_data_$field_name ON node.nid = field_data_$field_name.entity_id"),
       'where' => array("WHERE $entity_type.type = '$bundle_name' and $entity_type.status = 1 and field_data_$field_name.deleted = 0"),
       'rules' => array(
         "CREATE OR REPLACE RULE ${name}_update AS ON UPDATE TO $name DO INSTEAD 
@@ -188,11 +188,11 @@ CREATE VIEW $name AS SELECT $entity_type.nid as id, $entity_type.title, field_da
       ),
     );
 
+    // Join additional fields with a 1:1 mapping to this bundle.
     $fields = field_info_instances($entity_type, $bundle_name);
     foreach ($fields as $name => $field) {
-
       $field = field_info_field($name);
-      if ($field['cardinality'] === '1') {
+      if ($name != $field_name && $field['cardinality'] === '1') {
         foreach ($field['storage']['details']['sql']['FIELD_LOAD_CURRENT'] as $table => $table_fields) {
           foreach ($table_fields as $table_field) {
             $sql['select'][] = $table_field;
