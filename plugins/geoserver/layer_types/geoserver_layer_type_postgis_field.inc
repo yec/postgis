@@ -278,24 +278,21 @@ CREATE VIEW $name AS SELECT $entity_type.nid as id, $entity_type.title, field_da
     }
   }
 
+  /**
+   * @return array Mapping with all fields that are provided by the postgis module (fields that contain spatial data).
+   */
   static function get_sources() {
-
     $sources = array('');
-
-    foreach (field_info_instances() as $entity_type => $bundles) {
-
-      foreach ($bundles as $bundle_name => $fields) {
-
-        foreach ($fields as $field_name => $field) {
-
-          $field = field_info_field($field_name);
-
-          if ($field['type'] === 'postgis') {
-            $info = entity_get_info($entity_type);
-            $key = "$entity_type.$bundle_name.$field_name";
-            $value = "{$info['bundles'][$bundle_name]['label']} ($field_name)";
-            $sources[$info['label']][$key] = $value;
-            break;
+    
+    $entityTypes = entity_get_info();
+    foreach(field_info_fields() as $fieldName => $field){
+      // Offer all fields of the postgis module
+      if ($field['type'] === 'postgis') {
+        foreach($field['bundles'] as $entityType => $contentTypes){
+          foreach($contentTypes as $contentType) {
+            $key = $entityType.'.'.$contentType.'.'.$field['field_name'];
+            $value = $entityTypes[$entityType]['bundles'][$contentType]['label'].' ('.$field['field_name'].')';
+            $sources[$entityTypes[$entityType]['label']][$key] = $value;
           }
         }
       }
