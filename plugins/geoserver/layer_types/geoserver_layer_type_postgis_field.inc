@@ -151,15 +151,27 @@ class geoserver_layer_type_postgis_field extends geoserver_layer_type_feature_ty
     $sql_name     = 'geoserver_' . $this->name . '_view';
     $sql          = $this->get_sql($entity_type, $bundle_name, $field_name, $sql_name);
     $field        = field_info_field($field_name);
-    $bbox         = postgis_field_extent($field);
+
+    if ($field['settings']['srid'] == '4326') {
+      $bbox = array('-180', '-90', '180', '90');
+    } 
+    elseif ($field['settings']['srid'] == '900913') {
+      $bbox = array('-20037508', '-20037508', '20037508', '20037508');
+    }
+    else {
+      // Try to calculate maximum bounding box for defined projection.
+      $extent = db_query("select st_extent(st_transform(st_setsrid(st_geomfromtext('polygon((-180 -90,-180 90, 180 90, -180 90))'), 4326), :srid::int))", 
+        array(':srid' => $field['settings']['srid']))->fetchField();
+      $bbox = preg_split('/[\, ]/', drupal_substr($extent, 4, -1));
+    }
 
     $this->data['options']['srid'] = $field['settings']['srid'];
     $this->data['options']['sql_name'] = $sql_name;
     $this->data['options']['sql'] = $sql;
-    $this->data['options']['bounding_box']['minx'] = $bbox->minx;
-    $this->data['options']['bounding_box']['miny'] = $bbox->miny;
-    $this->data['options']['bounding_box']['maxx'] = $bbox->maxx;
-    $this->data['options']['bounding_box']['maxy'] = $bbox->maxy;
+    $this->data['options']['bounding_box']['minx'] = $bbox[0];
+    $this->data['options']['bounding_box']['miny'] = $bbox[1];
+    $this->data['options']['bounding_box']['maxx'] = $bbox[2];
+    $this->data['options']['bounding_box']['maxy'] = $bbox[3];
   }
 
   /**
