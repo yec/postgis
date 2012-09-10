@@ -160,9 +160,13 @@ class geoserver_layer_type_postgis_field extends geoserver_layer_type_feature_ty
     }
     else {
       // Try to calculate maximum bounding box for defined projection.
-      $extent = db_query("select st_extent(st_transform(st_setsrid(st_geomfromtext('polygon((-180 -90,-180 90, 180 90, -180 90))'), 4326), :srid::int))", 
-        array(':srid' => $field['settings']['srid']))->fetchField();
-      $bbox = preg_split('/[\, ]/', drupal_substr($extent, 4, -1));
+      try {
+        $extent = db_query("select st_extent(st_transform(st_setsrid(st_geomfromtext('polygon((-180 -90,-180 90, 180 90, -180 -90))'), 4326), :srid::int))", 
+          array(':srid' => $field['settings']['srid']))->fetchField();
+        $bbox = preg_split('/[\, ]/', drupal_substr($extent, 4, -1));
+      } catch (PDOException $exc) {
+        $bbox = array('', '', '', '');
+      }
     }
 
     $this->data['options']['srid'] = $field['settings']['srid'];
