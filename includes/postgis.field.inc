@@ -140,44 +140,67 @@ function postgis_field_presave($entity_type, $entity, $field, $instance, $langco
  */
 function postgis_field_update_field($field, $prior_field, $has_data) {
 
-  if (!$has_data && isset($field['settings']['srid'])) {
+  // check if the field to be updated is really a postgis field
+  // as this function get called when ANY field gets updated
+  $fieldtype = empty($field['type']) ? NULL : $field['type'];
+  if ($fieldtype != 'postgis') {
+    return;
+  }
 
-    $srid = $field['settings']['srid'];
-    $type = drupal_strtoupper($field['settings']['type']);
-    $storage = field_sql_storage_field_storage_details($field);
-    $connection = Database::getConnection();
+  if(!$has_data) {
+    watchdog('postgis', t('PostGIS fields containing data can not be updated.'),
+            array(), WATCHDOG_WARNING);
+    return;
+  }
 
-    foreach ($storage['sql'] as $tables) {
+  $srid = empty($field['settings']['srid']) ? NULL : $field['settings']['srid'];
+  if (empty($srid)) {
+    watchdog('postgis', t('PostGIS fields require a srid parameter. None given.'),
+            array(), WATCHDOG_ERROR);
+    return;
+  }
 
-      foreach ($tables as $table => $columns) {
+  $type = drupal_strtoupper(empty($field['settings']['type']) ? '' : $field['settings']['type']);
+  if (empty($type)) {
+    watchdog('postgis', t('PostGIS fields require a geometry type. None given.'),
+            array(), WATCHDOG_ERROR);
+    return;
+  }
 
-        // Use prefix as schema and/or table prefix.
-        $prefix = $connection->tablePrefix($table);
-        if ($pos = strpos($prefix, '.')) {
-          $schema = substr($prefix, 0, $pos);
-          $prefix_table = substr($prefix, $pos + 1, strlen($prefix)) . $table;
-        } else {
-          $schema = '';
-          $prefix_table = $prefix . $table;
-        }
 
-        foreach ($columns as $field => $column) {
+  $storage = field_sql_storage_field_storage_details($field);
+  $connection = Database::getConnection();
 
-          db_drop_field($table, $column);
+  foreach ($storage['sql'] as $tables) {
 
-          db_query(
-            'SELECT AddGeometryColumn(:schema, :table, :column, :srid, :type, 2)',
-            array(
-              ':schema' => $schema,
-              ':table'  => $prefix_table,
-              ':column' => $column,
-              ':srid'   => $srid,
-              ':type'   => $type,
-            )
-          );
+    foreach ($tables as $table => $columns) {
 
-          db_query('CREATE INDEX ' . $table . '_' . $column . '_idx ON {' . $table . '} USING GIST ( ' . $column . ' )');
-        }
+      // Use prefix as schema and/or table prefix.
+      $prefix = $connection->tablePrefix($table);
+      if ($pos = strpos($prefix, '.')) {
+        $schema = substr($prefix, 0, $pos);
+        $prefix_table = substr($prefix, $pos + 1, strlen($prefix)) . $table;
+      } else {
+        $schema = '';
+        $prefix_table = $prefix . $table;
+      }
+
+      foreach ($columns as $field => $column) {
+
+        db_drop_field($table, $column);
+
+        db_query(
+          'SELECT AddGeometryColumn(:schema, :table, :column, :srid, :type, 2)',
+          array(
+            ':schema' => $schema,
+            ':table'  => $prefix_table,
+            ':column' => $column,
+            ':srid'   => $srid,
+            ':type'   => $type,
+          )
+        );
+
+        db_query('CREATE INDEX ' . $table . '_' . $column . '_idx ON {' . $table . '} USING GIST ( ' . $column . ' )');
       }
     }
   }
