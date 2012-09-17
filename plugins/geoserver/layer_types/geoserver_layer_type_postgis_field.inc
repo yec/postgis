@@ -31,9 +31,8 @@ class geoserver_layer_type_postgis_field extends geoserver_layer_type_feature_ty
   }
 
   function save() {
-    parent::save();
     $this->create_view();
-    return TRUE;
+    return parent::save();
   }
 
   function create_view() {
@@ -145,14 +144,14 @@ class geoserver_layer_type_postgis_field extends geoserver_layer_type_feature_ty
 
     if ($field['settings']['srid'] == '4326') {
       $bbox = array('-180', '-90', '180', '90');
-    } 
+    }
     elseif ($field['settings']['srid'] == '900913') {
       $bbox = array('-20037508', '-20037508', '20037508', '20037508');
     }
     else {
       // Try to calculate maximum bounding box for defined projection.
       try {
-        $extent = db_query("select st_extent(st_transform(st_setsrid(st_geomfromtext('polygon((-180 -90,-180 90, 180 90, -180 -90))'), 4326), :srid::int))", 
+        $extent = db_query("select st_extent(st_transform(st_setsrid(st_geomfromtext('polygon((-180 -90,-180 90, 180 90, -180 -90))'), 4326), :srid::int))",
           array(':srid' => $field['settings']['srid']))->fetchField();
         $bbox = preg_split('/[\, ]/', drupal_substr($extent, 4, -1));
       } catch (PDOException $exc) {
@@ -183,14 +182,14 @@ CREATE VIEW $name AS SELECT $entity_type.nid as id, $entity_type.title, field_da
       'from' => array("FROM $prefix$entity_type LEFT JOIN field_data_$field_name ON node.nid = field_data_$field_name.entity_id"),
       'where' => array("WHERE $entity_type.type = '$bundle_name' and $entity_type.status = 1 and field_data_$field_name.deleted = 0"),
       'rules' => array(
-        "CREATE OR REPLACE RULE ${name}_update AS ON UPDATE TO $name DO INSTEAD 
+        "CREATE OR REPLACE RULE ${name}_update AS ON UPDATE TO $name DO INSTEAD
   UPDATE field_data_$field_name SET ${field_name}_geometry = NEW.${field_name}_geometry WHERE entity_id = NEW.id;",
         "CREATE OR REPLACE RULE ${name}_insert AS ON INSERT TO ${name} DO INSTEAD (
-    INSERT INTO field_data_$field_name VALUES ('node', '$bundle_name', 0, nextval('node_nid_seq'), currval('node_nid_seq'), 'und', 0, NEW.${field_name}_geometry);        
+    INSERT INTO field_data_$field_name VALUES ('node', '$bundle_name', 0, nextval('node_nid_seq'), currval('node_nid_seq'), 'und', 0, NEW.${field_name}_geometry);
     INSERT INTO node VALUES (currval('node_nid_seq'), currval('node_nid_seq'), '$bundle_name', 'und', '', 0, 1, extract(epoch from now())::int, extract(epoch from now())::int, 0, 0, 0, 0, 0);
-    INSERT INTO node_revision VALUES (currval('node_nid_seq'), currval('node_nid_seq'), 0, '', '', extract(epoch from now())::int, 1, 0, 0, 0); 
+    INSERT INTO node_revision VALUES (currval('node_nid_seq'), currval('node_nid_seq'), 0, '', '', extract(epoch from now())::int, 1, 0, 0, 0);
   );",
-        "CREATE OR REPLACE RULE ${name}_delete AS ON DELETE TO ${name} DO INSTEAD 
+        "CREATE OR REPLACE RULE ${name}_delete AS ON DELETE TO ${name} DO INSTEAD
   DELETE FROM field_data_$field_name  WHERE entity_id = OLD.id and delta = OLD.delta;",
       ),
     );
@@ -290,7 +289,7 @@ CREATE VIEW $name AS SELECT $entity_type.nid as id, $entity_type.title, field_da
    */
   static function get_sources() {
     $sources = array('');
-    
+
     $entityTypes = entity_get_info();
     foreach(field_info_fields() as $fieldName => $field){
       // Offer all fields of the postgis module
