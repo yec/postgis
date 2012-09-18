@@ -37,23 +37,16 @@ class geoserver_layer_type_postgis_field extends geoserver_layer_type_feature_ty
 
   function create_view() {
 
-    global $databases;
     db_query($this->data['options']['sql']);
-
     $primary_keys = array('table_schema', 'table_name', 'pk_column');
-    $prefix = $databases['default']['default']['prefix'];
-    $name = $prefix . 'geoserver_' . $this->name . '_view';
-    if ($pos = strpos($prefix, '.')) {
-      $schema = substr($prefix, 0, $pos);
-    } else {
-      $schema = 'public';
-    }
+    $sql_name = $this->data['options']['sql_name'];
+    $schema = $this->get_schema($sql_name);
 
     // Insert/Update rercords in geoserver_pk_metadata_table.
     foreach (array('id', 'delta') as $idx => $column) {
       $record = array(
         'table_schema' => $schema,
-        'table_name' => $name,
+        'table_name' => $sql_name,
         'pk_column' => $column,
         'pk_column_idx' => $idx
       );
@@ -67,6 +60,38 @@ class geoserver_layer_type_postgis_field extends geoserver_layer_type_feature_ty
         drupal_write_record('geoserver_pk_metadata_table', $record, $primary_keys) :
         drupal_write_record('geoserver_pk_metadata_table', $record);
     }
+  }
+
+  function delete() {
+
+    $sql_name = $this->data['options']['sql_name'];
+    $schema = $this->get_schema($sql_name);
+    $name = $schema . '.' . $sql_name;
+
+    db_delete('geoserver_pk_metadata_table')
+      ->condition('table_schema', $schema)
+      ->condition('table_name', $sql_name)
+      ->execute();
+
+    db_query('DROP VIEW IF EXISTS ' . db_escape_table($name));
+    return parent::delete();
+  }
+
+  private function get_schema(&$name) {
+    if ($pos = strpos($name, '.')) {
+      $name = substr($name, $pos) . $name;
+      $schema = substr($name, 0, $pos);
+    } else {
+      $prefix = Database::getConnection()->tablePrefix();
+      if ($pos = strpos($prefix, '.')) {
+        $name = substr($prefix, $pos) . $name;
+        $schema = substr($prefix, 0, $pos);
+      } else {
+        $name = $prefix . $name;
+        $schema = 'public';
+      }
+    }
+    return $schema;
   }
 
   /**
@@ -99,7 +124,7 @@ class geoserver_layer_type_postgis_field extends geoserver_layer_type_feature_ty
     return array(
       'featureType' => array(
         'name'       => $this->name,
-        'nativeName' => 'geoserver_' . $this->name . '_view',
+        'nativeName' => isset($options['sql_name']) ? $options['sql_name'] : '',
         'namespace'  => array('name' => $this->workspace),
         'title'      => $this->title,
         'nativeCRS'  => isset($options['srid']) ? 'EPSG:' . $options['srid'] : '',
@@ -134,11 +159,12 @@ class geoserver_layer_type_postgis_field extends geoserver_layer_type_feature_ty
    */
   function load_source($source) {
 
+    $prefix       = Database::getConnection()->tablePrefix();
     $source_array = explode('.', $source);
     $entity_type  = $source_array[0];
     $bundle_name  = $source_array[1];
     $field_name   = $source_array[2];
-    $sql_name     = 'geoserver_' . $this->name . '_view';
+    $sql_name     = $prefix . 'geoserver_' . $this->name . '_view';
     $sql          = $this->get_sql($entity_type, $bundle_name, $field_name, $sql_name);
     $field        = field_info_field($field_name);
 
@@ -171,11 +197,7 @@ class geoserver_layer_type_postgis_field extends geoserver_layer_type_feature_ty
   /**
    * Get layer SQL definition.
    */
-  protected function get_sql($entity_type, $bundle_name, $field_name, $sql_name) {
-
-    $connection = Database::getConnection();
-    $prefix = $connection->tablePrefix();
-    $name = $prefix . $sql_name;
+  protected function get_sql($entity_type, $bundle_name, $field_name, $name) {
     $sql = array(
       'select' => array("DROP VIEW IF EXISTS $name;
 CREATE VIEW $name AS SELECT $entity_type.nid as id, $entity_type.title, field_data_$field_name.delta, field_data_$field_name.{$field_name}_geometry"),
