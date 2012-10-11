@@ -286,6 +286,19 @@ class PostgisGeometrySet {
   function isEmpty() {
     return empty($this->geometries);
   }
+
+  /**
+   * Geometries get transformed to spatial reference system 
+   * referenced by the SRID integer parameter.
+   *
+   * @param integer $srid
+   *   SRID of target spatial reference system.
+   */
+  function transform($srid) {
+    foreach ($this->geometries as $geometry) {
+      $geometry->transform($srid);
+    }
+  }
 }
 
 /**
@@ -464,6 +477,21 @@ class PostgisGeometry {
   function isEmpty() {
     $geo = is_null($this->wkt) ? $this->geometry : $this->wkt;
     return empty($geo);
+  }
+
+  /**
+   * Geometry gets transformed to spatial reference system 
+   * referenced by the SRID integer parameter.
+   *
+   * @param integer $srid
+   *   SRID of target spatial reference system.
+   */
+  function transform($srid) {
+    $geometry = $this->getGeometry();
+    $this->geometry = db_query("SELECT ST_Transform(:geometry, :srid)", 
+      array(':geometry' => $geometry, ':srid' => $srid))->fetchField();
+    $this->srid = $srid;
+    $this->wkt = NULL;
   }
 }
 
