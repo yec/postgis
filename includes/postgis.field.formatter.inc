@@ -104,13 +104,12 @@ function postgis_field_formatter_view($entity_type, $entity, $field, $instance, 
   // Combines multiple values from database to a single container object.
   $set = new PostgisGeometrySet($field['settings']['type'], $field['settings']['srid']);
   $set->fromGeometry($items);
-  $wkt = $set->getText();
 
   switch ($display['type']) {
 
     // Shows geometry as text to user.
     case 'wkt':
-      $element[]['#markup'] = $wkt;
+      $element[]['#markup'] = $set->getText();
       break;
 
     // Shows length of geometry to user.
@@ -122,15 +121,11 @@ function postgis_field_formatter_view($entity_type, $entity, $field, $instance, 
     // Shows feature of a map.
     case 'openlayers':
       $map_name = $display['settings']['map'] ? $display['settings']['map'] : 'postgis_formatter_map';
-      $map = openlayers_map_load($map_name);
-      $map = openlayers_build_map($map->data);
+      $map_data = openlayers_map_load($map_name);
+      $map = openlayers_build_map($map_data->data);
+      $set->transform($map_data->data['projection']);
 
-      $map['layers']['postgis_formatter_layer']['features'] = array(
-        array(
-          'wkt' => $wkt,
-          'projection' => $field['settings']['srid'],
-        ),
-      );
+      $map['layers']['postgis_formatter_layer']['features'] = array(array('wkt' => $set->getText()));
 
       // Render map if no errors found.
       if (empty($map['errors'])) {
