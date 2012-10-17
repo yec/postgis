@@ -96,7 +96,6 @@ function postgis_field_widget_form(&$form, &$form_state, $field, $instance, $lan
 
   $set = new PostgisGeometrySet($field['settings']['type'], $field['settings']['srid']);
   $set->fromGeometry($items);
-  $value = $set->getText();
 
   $element[$delta] = array(
     '#delta' => $delta,
@@ -125,6 +124,7 @@ function postgis_field_widget_form(&$form, &$form_state, $field, $instance, $lan
     }
 
     $map = openlayers_map_load($settings['map']);
+    $set->transform($map->data['projection']);
     $behavior = isset($map->data['behaviors'][$settings['behavior']]) ?
         $map->data['behaviors'][$settings['behavior']] : array();
 
@@ -149,7 +149,7 @@ function postgis_field_widget_form(&$form, &$form_state, $field, $instance, $lan
       '#type' => 'textarea',
       '#attributes' => array('id' => $textarea_id, 'style' => 'display: none;'),
       // Using a format that OpenLayers can handle.
-      '#default_value' => ($value === 'GEOMETRYCOLLECTION(EMPTY)') ? '' : $value,
+      '#default_value' => ($set->getText() === 'GEOMETRYCOLLECTION(EMPTY)') ? '' : $set->getText(),
       '#required' => $element['#required'],
       '#resizable' => FALSE,
     );
@@ -163,7 +163,7 @@ function postgis_field_widget_form(&$form, &$form_state, $field, $instance, $lan
     $element[$delta]['wkt'] = array(
       '#title' => t('Well Known Text'),
       '#type' => 'textarea',
-      '#default_value' => $value,
+      '#default_value' => $set->getText(),
       '#required' => $element['#required'],
     );
   }

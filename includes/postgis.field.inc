@@ -103,8 +103,16 @@ function postgis_field_is_empty($item, $field) {
  * Implements hook_field_presave().
  */
 function postgis_field_presave($entity_type, $entity, $field, $instance, $langcode, &$items) {
+  
   $type = $field['settings']['type'];
-  $srid = $field['settings']['srid'];
+
+  if ($instance['widget']['type'] === 'openlayers') {
+    $map_name = $instance['widget']['settings']['map'];
+    $map_data = openlayers_map_load($map_name);
+    $srid = $map_data->data['projection'];
+  } else {
+    $srid = $field['settings']['srid'];
+  }
 
   $set = new PostgisGeometrySet($type, $srid);
   foreach ($items as $delta => $item) {
@@ -115,6 +123,10 @@ function postgis_field_presave($entity_type, $entity, $field, $instance, $langco
     else {
       $set->fromGeometry($item);
     }
+  }
+
+  if ($instance['widget']['type'] === 'openlayers') {
+    $set->transform($field['settings']['srid']);
   }
 
   switch ($type) {
