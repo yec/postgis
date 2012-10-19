@@ -16,7 +16,7 @@ function postgis_openlayers_maps() {
   $widget->description = t('A map used for PostGIS input (for feature editing only)');
   $widget->data = array(
     'projection' => '900913',
-    'width' => '600px',
+    'width' => 'auto',
     'default_layer' => 'osm_mapnik',
     'height' => '400px',
     'center' => array(
@@ -46,7 +46,7 @@ function postgis_openlayers_maps() {
   $formatter->description = t('A map used for PostGIS output (for feature display only)');
   $formatter->data = array(
     'projection' => '900913',
-    'width' => '600px',
+    'width' => 'auto',
     'default_layer' => 'osm_mapnik',
     'height' => '400px',
     'center' => array(
