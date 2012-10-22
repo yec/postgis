@@ -103,7 +103,6 @@ function postgis_field_is_empty($item, $field) {
  * Implements hook_field_presave().
  */
 function postgis_field_presave($entity_type, $entity, $field, $instance, $langcode, &$items) {
-  
   $type = $field['settings']['type'];
 
   if ($instance['widget']['type'] === 'openlayers') {
@@ -125,7 +124,7 @@ function postgis_field_presave($entity_type, $entity, $field, $instance, $langco
     }
   }
 
-  if ($instance['widget']['type'] === 'openlayers') {
+  if ($instance['widget']['type'] === 'openlayers' && !isset($item['feeds'])) {
     $set->transform($field['settings']['srid']);
   }
 

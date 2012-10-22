@@ -34,7 +34,7 @@ function postgis_feeds_set_target_kml($source, $entity, $target, $value) {
 
   $value = db_query("SELECT ST_AsText(ST_GeomFromKML(:kml));",
           array(':kml' => $value))->fetchField();
-  
+
   postgis_feeds_set_target($source, $entity, $target, $value);
 }
 
@@ -46,6 +46,7 @@ function postgis_feeds_set_target($source, $entity, $target, $value) {
 
   $field = isset($entity->$target) ? $entity->$target : array();
   $field[$entity->language][0]['wkt'] = $value;
+  $field[$entity->language][0]['feeds'] = TRUE;
 
   $target = substr($target, 0, strpos($target, ':'));
   $entity->{$target} = $field;
