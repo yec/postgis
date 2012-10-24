@@ -72,3 +72,12 @@ function postgis_help($path, $arg) {
   }
 }
 
+/**
+ * Implements hook_view_api().
+ */
+function postgis_views_api() {
+  return array(
+    'api' => '3',
+    'path' => drupal_get_path('module', 'postgis') . '/views',
+  );
+}
