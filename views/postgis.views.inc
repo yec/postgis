@@ -6,15 +6,19 @@
  */
 
 /**
- * Implements hook_views_data_alter().
+ * Implements hook_field_views_data().
+ *
+ * Set custom filter handler for PostGIS fields.
+ *
  */
-function postgis_views_data_alter(&$data) {
-  foreach ($data as $table => $config) {
-    if (isset($config['field_postgis'])) {
-      $field_name = $config['field_postgis']['filter']['field_name'] . '_geometry';
-      $data[$table][$field_name]['filter']['handler'] = 'postgis_views_handler_filter_geometry';
+function postgis_field_views_data($field) {
+  $data = field_views_field_default_views_data($field);
+  $field_name = $field['field_name'] . '_geometry';
+
+  foreach ($data as $table_name => $table_data) {
+    if (isset($table_data[$field_name])) {
+      $data[$table_name][$field_name]['filter']['handler'] = 'postgis_views_handler_filter_geometry';
     }
   }
-  dvm($data);
   return $data;
 }

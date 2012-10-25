@@ -21,6 +21,7 @@ class postgis_views_handler_filter_geometry extends views_handler_filter {
     $options['origin'] = array('default' => 'nid_arg');
     $options['value'] = array(
       'default' => array(
+        'nid_arg' => '',
         'nid_postgis_field' => '',
       ),
     );
@@ -33,7 +34,11 @@ class postgis_views_handler_filter_geometry extends views_handler_filter {
     $form['operation'] = array(
       '#type' => 'select',
       '#title' => t('Operation'),
-      '#options' => $this->operations,
+      '#options' => array(
+        'ST_Contains' => t('Contains'), 
+        'ST_Intersects' => t('Intersects'), 
+        'ST_Disjoint' => t('Disjoint'),
+      ),
       '#description' => t('This will be the way the relationship is determined.'),
       '#default_value' => $this->options['operation'] ? $this->options['operation'] : 'ST_Contains',
     );
