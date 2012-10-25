@@ -124,7 +124,7 @@ function postgis_field_widget_form(&$form, &$form_state, $field, $instance, $lan
     }
 
     $map = openlayers_map_load($settings['map']);
-    $set->transform($map->data['projection']);
+    $set->transform('4326');
     $behavior = isset($map->data['behaviors'][$settings['behavior']]) ?
         $map->data['behaviors'][$settings['behavior']] : array();
 

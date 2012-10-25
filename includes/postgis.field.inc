@@ -105,10 +105,10 @@ function postgis_field_is_empty($item, $field) {
 function postgis_field_presave($entity_type, $entity, $field, $instance, $langcode, &$items) {
   $type = $field['settings']['type'];
 
-  if ($instance['widget']['type'] === 'openlayers') {
+  if ($instance['widget']['type'] === 'openlayers' && !isset($items[0]['feeds'])) {
     $map_name = $instance['widget']['settings']['map'];
     $map_data = openlayers_map_load($map_name);
-    $srid = $map_data->data['projection'];
+    $srid = '4326';
   } else {
     $srid = $field['settings']['srid'];
   }
