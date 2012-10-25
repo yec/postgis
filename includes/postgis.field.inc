@@ -159,7 +159,7 @@ function postgis_field_update_field($field, $prior_field, $has_data) {
     return;
   }
 
-  if(!$has_data) {
+  if($has_data) {
     watchdog('postgis', t('PostGIS fields containing data can not be updated.'),
             array(), WATCHDOG_WARNING);
     return;
