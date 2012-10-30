@@ -21,7 +21,7 @@ function postgis_field_widget_info() {
       'label' => t('OpenLayers Map'),
       'field types' => array('postgis'),
       'settings' => array(
-        'map'      => 'postgis_widget_map',
+        'map'      => 'default',
         'behavior' => module_exists('ole') ? 
           'openlayers_behavior_ole' : 'openlayers_behavior_drawfeatures',
       ),
@@ -50,7 +50,7 @@ function postgis_field_widget_settings_form($field, $instance) {
   if ($widget['type'] == 'openlayers') {
 
     $maps = openlayers_map_options();
-    $map = isset($settings['map']) ? $settings['map'] : 'postgis_widget_map';
+    $map = isset($settings['map']) ? $settings['map'] : 'default';
 
     $form['map'] = array(
       '#type' => 'select',

@@ -20,7 +20,7 @@ function postgis_field_formatter_info() {
     $formatters['openlayers'] = array(
       'label' => t('OpenLayers Map'),
       'field types' => array('postgis'),
-      'settings' => array('map' => 'postgis_formatter_map'),
+      'settings' => array('map' => 'default'),
     );
   }
 
@@ -49,26 +49,19 @@ function postgis_field_formatter_settings_form($field, $instance, $view_mode, $f
 
   if ($display['type'] == 'openlayers' && module_exists('openlayers')) {
 
-    // OpenLayers maps filtered to those which have the postgis_formatter_layer
     $maps = openlayers_maps();
     $maps_options = array();
     foreach ($maps as $map) {
-      if (in_array('postgis_formatter_layer', $map->data['layers'])) {
-        $maps_options[$map->name] = $map->title;
-      }
-    }
-
-    if (empty($maps)) {
-      form_set_error('map', t('Error: You have no compatible OpenLayers maps. Make sure that at least one map has the PostGIS formatter layer enabled.'));
+      $maps_options[$map->name] = $map->title;
     }
 
     $element['map'] = array(
       '#title' => t('OpenLayers map'),
       '#type' => 'select',
-      '#default_value' => $settings['map'] ? $settings['map'] : 'postgis_formatter_map',
+      '#default_value' => $settings['map'] ? $settings['map'] : 'default',
       '#required' => TRUE,
       '#options' => $maps_options,
-      '#description' => t('Select which OpenLayers map you would like to use. Only maps which have the PostGIS formatter layer may be selected.'),
+      '#description' => t('Select which OpenLayers map you would like to use.'),
     );
   }
 
@@ -120,9 +113,23 @@ function postgis_field_formatter_view($entity_type, $entity, $field, $instance, 
 
     // Shows feature of a map.
     case 'openlayers':
-      $map_name = $display['settings']['map'] ? $display['settings']['map'] : 'postgis_formatter_map';
+      $map_name = $display['settings']['map'] ? $display['settings']['map'] : 'default';
       $map_data = openlayers_map_load($map_name);
+      if (!isset($map_data->data['layers']['postgis_formatter_layer'])) {
+        $map_data->data['layers']['postgis_formatter_layer'] = 'postgis_formatter_layer';
+      }
+      if (!isset($map_data->data['behaviors']['openlayers_behavior_zoomtolayer'])) {
+        $map_data->data['behaviors']['openlayers_behavior_zoomtolayer'] = array(
+          'zoomtolayer' => array(
+            'postgis_formatter_layer' => 'postgis_formatter_layer',
+          ),
+          'point_zoom_level' => '10',
+          'zoomtolayer_scale' => '1',
+        );
+      }
       $map = openlayers_build_map($map_data->data);
+      $map['layers']['postgis_formatter_layer']['title'] = $instance['label'];
+      
       $set->transform($map_data->data['projection']);
 
       $map['layers']['postgis_formatter_layer']['features'] = array(array('wkt' => $set->getText()));
