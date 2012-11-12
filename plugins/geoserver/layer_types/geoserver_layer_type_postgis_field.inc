@@ -200,7 +200,7 @@ class geoserver_layer_type_postgis_field extends geoserver_layer_type_feature_ty
   protected function get_sql($entity_type, $bundle_name, $field_name, $name) {
     $sql = array(
       'select' => array("DROP VIEW IF EXISTS $name;
-CREATE VIEW $name AS SELECT $entity_type.nid as id, $entity_type.title, field_data_$field_name.delta, field_data_$field_name.{$field_name}_geometry"),
+CREATE VIEW $name AS SELECT $entity_type.nid as id, $entity_type.title as name, field_data_$field_name.delta, field_data_$field_name.{$field_name}_geometry"),
       'from' => array("FROM $prefix$entity_type LEFT JOIN field_data_$field_name ON node.nid = field_data_$field_name.entity_id"),
       'where' => array("WHERE $entity_type.type = '$bundle_name' and $entity_type.status = 1 and field_data_$field_name.deleted = 0"),
       'rules' => array(
