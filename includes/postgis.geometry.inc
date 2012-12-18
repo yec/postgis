@@ -488,7 +488,7 @@ class PostgisGeometry {
    */
   function transform($srid) {
     $geometry = $this->getGeometry();
-    $this->geometry = db_query("SELECT ST_Transform(:geometry, :srid)", 
+    $this->geometry = db_query("SELECT ST_Transform(:geometry::geometry, :srid::integer)", 
       array(':geometry' => $geometry, ':srid' => $srid))->fetchField();
     $this->srid = $srid;
     $this->wkt = NULL;
