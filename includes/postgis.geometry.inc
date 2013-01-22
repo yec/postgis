@@ -8,6 +8,52 @@
 class PostgisGeometryException extends Exception {
 }
 
+
+/**
+ * warpper arround wkt strings
+ * converts EWKT to WKT
+ */
+class Wkt {
+  private $wkt, $srid;
+
+  function __construct($wkt) {
+    // check if the wkt is an EWKT string. if it is, use the srid
+    // convert the ewkt to wkt
+    if (preg_match('/^SRID\=([0-9]+);(.*)/i', $wkt, $matches)) {
+      $this->srid = $matches[1];
+      $this->wkt = $matches[2];
+    }
+    else {
+      $this->wkt = $wkt;
+    }
+  }
+
+  /**
+   * return a WKT string
+   */
+  function getWktString() {
+    return $this->wkt;
+  }
+
+  function getSrid() {
+    return $this->srid;
+  }
+
+  function hasSrid() {
+    return !empty($this->srid);
+  }
+
+  /**
+   * return the wktstring wrapped in a geometry collection
+   */
+  function getCollectionWktString() {
+    if (stripos($this->wkt, 'GEOMETRYCOLLECTION') !== 0) {
+      return 'GEOMETRYCOLLECTION(' . $this->wkt . ')';
+    }
+    return $this->wkt;
+  }
+}
+
 /**
  * Provides a set of postgis_geometry with same geometry type and projection.
  */
@@ -106,9 +152,12 @@ class PostgisGeometrySet {
   }
 
   /**
-   * Add a geometrie to geometries.
+   * Add a geometry to geometries.
    */
   function add(PostgisGeometry $geometry) {
+    if ($geometry->getSrid() !== $this->srid) {
+      $geometry->transform($this->srid);
+    }
     $this->geometries[] = $geometry;
   }
 
@@ -144,21 +193,24 @@ class PostgisGeometrySet {
   /**
    * Add geometries from text. The existing geometries are kept
    * and the new geometries are added behind.
-   * @param $wkt string
+   * @param $wktString string
    */
-  function fromText($wkt) {
+  function fromText($wktString) {
 
     // Catch empty WKT and GEOMETRYCOLLECTION coming from OpenLayers.
-    if (empty($wkt) || $wkt === 'GEOMETRYCOLLECTION()' || $wkt === 'GEOMETRYCOLLECTION(EMPTY)') {
+    if (empty($wktString) || $wktString === 'GEOMETRYCOLLECTION()' || $wktString === 'GEOMETRYCOLLECTION(EMPTY)') {
       return;
     }
 
-    try {
-      // Add GEOMETRYCOLLECTION if missing for OpenLayers compability.
-      if (stripos($wkt, 'GEOMETRYCOLLECTION') !== 0) {
-        $wkt = 'GEOMETRYCOLLECTION(' . $wkt . ')';
-      }
+    $wkt = new Wkt($wktString);
+    // Return WKT from (maybe) EWKT and add GEOMETRYCOLLECTION if missing for OpenLayers compability.
+    $wktString = $wkt->getCollectionWktString();
+    $wktSrid = $this->srid;
+    if (!$wkt->hasSrid()) {
+      $wktSrid = $wkt->getSrid();
+    }
 
+    try {
       if ($this->multi) {
 
         // Convert geometrycollection with single geometries to multi geometry.
@@ -167,11 +219,11 @@ class PostgisGeometrySet {
         // This is done of type-compability with the selection geometry type.
         $wkt = db_query("SELECT ST_AsText(ST_Multi(ST_Collect(a.geom))) AS wkt
           FROM (SELECT (ST_Dump(ST_GeomFromText(:wkt))).geom as geom) AS a",
-          array(':wkt' => $wkt))->fetchField();
+          array(':wkt' => $wktString))->fetchField();
 
-        $geometry = new PostgisGeometry($this->type, $this->srid);
-        $geometry->fromText($wkt);
-        $this->geometries[] = $geometry;
+        $geometry = new PostgisGeometry($this->type, $wktSrid);
+        $geometry->fromText($wktString);
+        $this->add($geometry);
 
       }
       else {
@@ -179,21 +231,21 @@ class PostgisGeometrySet {
         // Convert geometrycollection  to single geometries.
         $rows = db_query("SELECT ST_AsText(a.geom) as wkt FROM (
           SELECT (ST_Dump(ST_GeomFromText(:wkt))).geom as geom) AS a;",
-          array(':wkt' => $wkt));
+          array(':wkt' => $wktString));
 
         foreach ($rows as $row) {
-          $geometry = new PostgisGeometry($this->type, $this->srid);
+          $geometry = new PostgisGeometry($this->type, $wktSrid);
           $geometry->fromText($row->wkt);
-          $this->geometries[] = $geometry;
+          $this->add($geometry);
         }
       }
     }
     catch (PDOException $e) {
 
       // Just add broken WKT, will be validated later.
-      $geometry = new PostgisGeometry($this->type, $this->srid);
-      $geometry->fromText($wkt);
-      $this->geometries[] = $geometry;
+      $geometry = new PostgisGeometry($this->type, $wktSrid);
+      $geometry->fromText($wktString);
+      $this->add($geometry);
     }
   }
 
@@ -209,7 +261,7 @@ class PostgisGeometrySet {
       if (isset($item['geometry'])) {
         $geometry = new PostgisGeometry($this->type, $this->srid);
         $geometry->fromGeometry($item['geometry']);
-        $this->geometries[] = $geometry;
+        $this->add($geometry);
       }
     }
   }
@@ -325,8 +377,15 @@ class PostgisGeometry {
    * Add geometry from text.
    */
   function fromText($wkt) {
-    $this->wkt = $wkt;
     $this->geometry = NULL;
+
+    // check if the wkt is an EWKT string. if it is, use the srid
+    // convert the ewkt to wkt
+    $wktObj = new Wkt($wkt);
+    $this->wkt = $wktObj->getWktString();
+    if ($wktObj->hasSrid()) {
+      $this->srid = $wktObj->getSrid();
+    }
   }
 
   /**
@@ -346,6 +405,13 @@ class PostgisGeometry {
           array(':geometry' => $this->geometry))->fetchField();
     }
     return $this->wkt;
+  }
+
+  /**
+   * return the SRID of the geometry
+   */
+  function getSrid() {
+    return $this->srid;
   }
 
   /**
