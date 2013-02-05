@@ -46,26 +46,21 @@ function postgis_requirements($phase) {
     case 'update':
     case 'runtime':
       // Check if PostGIS is installed.
-      try {
-        $value = db_query('SELECT substring(PostGIS_Version() from 1 for 3)')->fetchField();
-        if (empty($value)) {
-          $description_extension = $t('Unable to determinate version of PostGIS installation.');
-          $severity = REQUIREMENT_ERROR;
-        }
-        $comparisson = version_compare($value, '1.5');
-        if ($comparisson === False) {
-          // version compare failed -- value seems to be not parseable
-          $severity = REQUIREMENT_WARNING;
-        }
-        if ($comparisson == -1) {
-          $description_extension = $t('PostGIS installation uses unsupported old version '.$value.'.');
-          $severity = REQUIREMENT_WARNING;
-        }
-      }
-      catch (PDOException $e) {
-        $value = $t('Not available');
+      $version = postgis_version();
+      if (empty($version)) {
+        $description_extension = $t('Unable to determinate version of PostGIS installation.');
         $severity = REQUIREMENT_ERROR;
       }
+      $comparisson = version_compare($version, '1.5');
+      if ($comparisson === False) {
+        // version compare failed -- version seems to be not parseable
+        $severity = REQUIREMENT_WARNING;
+      }
+      if ($comparisson == -1) {
+        $description_extension = $t('PostGIS installation uses unsupported old version '.$version.'.');
+        $severity = REQUIREMENT_WARNING;
+      }
+
       // Check if PostGIS can also be used.
       if ($severity === REQUIREMENT_OK || $severity === REQUIREMENT_WARNING) {
         try {
@@ -87,7 +82,7 @@ function postgis_requirements($phase) {
         'title' => 'PostGIS',
         'description' => $t('A <a href="@link">PostGIS</a> enabled database is required; version 1.5 is strongly recommended.',
           array('@link' => 'http://postgis.org')) . $description_extension,
-        'value' => $value,
+        'value' => $version,
         'severity' => $severity,
       );
   }

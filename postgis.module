@@ -81,3 +81,16 @@ function postgis_views_api() {
     'path' => drupal_get_path('module', 'postgis') . '/views',
   );
 }
+
+/**
+ * Returns PostGIS version number.
+ */
+function postgis_version() {
+  try {
+    $version = db_query('SELECT substring(PostGIS_Version() from 1 for 3)')->fetchField();
+  }
+  catch (PDOException $e) {
+    $version = '';
+  }
+  return $version;
+}
