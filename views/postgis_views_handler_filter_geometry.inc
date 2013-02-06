@@ -90,7 +90,13 @@ class postgis_views_handler_filter_geometry extends views_handler_filter {
 
   function query() {
 
-    if (empty($this->value) || !in_array($this->options['operation'], $this->operations)) {
+    $nid_arg = $this->view->display_handler->get_handler('argument', $this->options['value']['nid_arg']);
+    if (empty($this->value) || empty($nid_arg) || !in_array($this->options['operation'], $this->operations)) {
+      return;
+    }
+
+    $nid = $nid_arg->get_value();
+    if (empty($nid)) {
       return;
     }
 
@@ -100,9 +106,8 @@ class postgis_views_handler_filter_geometry extends views_handler_filter {
     $field_geometry = db_escape_table($this->definition['field_name'] . '_geometry');
     $field_name = db_escape_table($this->options['value']['nid_postgis_field'] . '_geometry');
     $table_name = db_escape_table('field_data_' . $this->options['value']['nid_postgis_field']);
-    $nid_arg = $this->view->display_handler->get_handler('argument', $this->options['value']['nid_arg']);
     $where = "$operation((select $field_name from $table_name where entity_id = :nid), $this->table_alias.$field_geometry)";
 
-    $this->query->add_where_expression($this->options['group'], $where, array(':nid' => $nid_arg->get_value()));
+    $this->query->add_where_expression($this->options['group'], $where, array(':nid' => $nid));
   }
 }
