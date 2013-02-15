@@ -206,7 +206,7 @@ class PostgisGeometrySet {
     // Return WKT from (maybe) EWKT and add GEOMETRYCOLLECTION if missing for OpenLayers compability.
     $wktString = $wkt->getCollectionWktString();
     $wktSrid = $this->srid;
-    if (!$wkt->hasSrid()) {
+    if ($wkt->hasSrid()) {
       $wktSrid = $wkt->getSrid();
     }
 
