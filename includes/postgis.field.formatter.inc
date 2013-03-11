@@ -130,7 +130,13 @@ function postgis_field_formatter_view($entity_type, $entity, $field, $instance, 
       $map = openlayers_build_map($map_data->data);
       $map['layers']['postgis_formatter_layer']['title'] = $instance['label'];
       
-      $set->transform($map_data->data['projection']);
+      // cut of EPSG prefix from openlayers module
+      $projectionId = $map_data->data['projection'];
+      if (!is_numeric($projectionId) && (strpos($projectionId, ':') != -1)) {
+        $projectionId = substr($projectionId, 1+strpos($projectionId, ':'));
+      }
+
+      $set->transform($projectionId);
 
       $map['layers']['postgis_formatter_layer']['features'] = array(array('wkt' => $set->getText()));
 
