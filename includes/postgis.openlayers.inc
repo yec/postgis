@@ -17,7 +17,7 @@ function postgis_openlayers_layers() {
   $layer->description = t('This layer is used by the PostGIS module to display geospatial data on a map, for example when viewing a node page.');
   $layer->data = array(
     'layer_type' => 'openlayers_layer_type_raw',
-    'projection' => array('900913'),
+    'projection' => array('EPSG:900913', 'EPSG:3857'),
     'features' => array(),
   );
   $layers[$layer->name] = $layer;
