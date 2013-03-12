@@ -106,9 +106,11 @@ function postgis_field_presave($entity_type, $entity, $field, $instance, $langco
   $type = $field['settings']['type'];
 
   if ($instance['widget']['type'] === 'openlayers' && !isset($items[0]['feeds'])) {
-    $map_name = $instance['widget']['settings']['map'];
-    $map_data = openlayers_map_load($map_name);
-    $srid = '4326';
+    $map = openlayers_map_load($instance['widget']['settings']['map']);
+    $srid = $map->data['projection'];
+    if (!is_numeric($srid) && (strpos($srid, ':') != -1)) {
+      $srid = substr($srid, 1+strpos($srid, ':'));
+    }
   } else {
     $srid = $field['settings']['srid'];
   }

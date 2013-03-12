@@ -124,7 +124,11 @@ function postgis_field_widget_form(&$form, &$form_state, $field, $instance, $lan
     }
 
     $map = openlayers_map_load($settings['map']);
-    $set->transform('4326');
+    $srid = $map->data['projection'];
+    if (!is_numeric($srid) && (strpos($srid, ':') != -1)) {
+      $srid = substr($srid, 1+strpos($srid, ':'));
+    }
+    $set->transform($srid);
     $behavior = isset($map->data['behaviors'][$settings['behavior']]) ?
         $map->data['behaviors'][$settings['behavior']] : array();
 
