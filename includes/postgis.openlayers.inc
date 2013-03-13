@@ -24,3 +24,13 @@ function postgis_openlayers_layers() {
   return $layers;
 }
 
+/**
+ * Implements hook_openlayers_map_alter().
+ *
+ * Add WKT to postgis_formatter_layer if available.
+ */
+function postgis_openlayers_map_alter(&$map) {
+  if (isset($map['postgis_formatter_layer_wkt'])) {
+    $map['layers']['postgis_formatter_layer']['features'] = array(array('wkt' => $map['postgis_formatter_layer_wkt']));
+  }
+}

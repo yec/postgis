@@ -117,6 +117,7 @@ function postgis_field_formatter_view($entity_type, $entity, $field, $instance, 
       $map_data = openlayers_map_load($map_name);
       if (!isset($map_data->data['layers']['postgis_formatter_layer'])) {
         $map_data->data['layers']['postgis_formatter_layer'] = 'postgis_formatter_layer';
+        $map_data->data['layer_activated']['postgis_formatter_layer'] = 'postgis_formatter_layer';
       }
       if (!isset($map_data->data['behaviors']['openlayers_behavior_zoomtolayer'])) {
         $map_data->data['behaviors']['openlayers_behavior_zoomtolayer'] = array(
@@ -127,8 +128,6 @@ function postgis_field_formatter_view($entity_type, $entity, $field, $instance, 
           'zoomtolayer_scale' => '1',
         );
       }
-      $map = openlayers_build_map($map_data->data);
-      $map['layers']['postgis_formatter_layer']['title'] = $instance['label'];
       
       // cut of EPSG prefix from openlayers module
       $projectionId = $map_data->data['projection'];
@@ -138,18 +137,13 @@ function postgis_field_formatter_view($entity_type, $entity, $field, $instance, 
 
       $set->transform($projectionId);
 
-      $map['layers']['postgis_formatter_layer']['features'] = array(array('wkt' => $set->getText()));
-
       // Render map if no errors found.
       if (empty($map['errors'])) {
-        $js = array('openlayers' => array('maps' => array($map['id'] => $map)));
-        drupal_add_js($js, 'setting');
+        
+        // WKT will be added to postgis_formatter_layer by postgis_openlayers_map_alter().
+        $map_data->data['postgis_formatter_layer_wkt'] = $set->getText();
 
-        // Push map through theme function.
-        $element[0]['#markup'] = theme('openlayers_map', array(
-          'map' => $map,
-          'map_name' => $map_name,
-        ));
+        $element[0]['#markup'] = openlayers_render_map_data($map_data->data, 'postgis_field_formatter_map');
       }
 
       break;
