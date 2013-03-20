@@ -127,6 +127,7 @@ class geoserver_layer_type_postgis_field extends geoserver_layer_type_feature_ty
         'nativeName' => isset($options['sql_name']) ? $options['sql_name'] : '',
         'namespace'  => array('name' => $this->workspace),
         'title'      => $this->title,
+        'abstract'   => $this->description,
         'nativeCRS'  => isset($options['srid']) ? 'EPSG:' . $options['srid'] : '',
         'srs'        => isset($options['srid']) ? 'EPSG:' . $options['srid'] : '',
         'nativeBoundingBox' => array(
