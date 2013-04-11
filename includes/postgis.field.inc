@@ -133,7 +133,7 @@ function postgis_field_presave($entity_type, $entity, $field, $instance, $langco
   switch ($type) {
     case POSTGIS_PRIMITIVE_GEOMETRYCOLLECTION:
       $wkt = $set->getText();
-      $geometry = new PostgisGeometry($type, $srid);
+      $geometry = new PostgisGeometry($type, $field['settings']['srid']);
       $geometry->fromText($wkt);
       $items = array(array(
         'wkt' => $wkt,
