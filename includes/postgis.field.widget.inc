@@ -129,8 +129,31 @@ function postgis_field_widget_form(&$form, &$form_state, $field, $instance, $lan
       $srid = substr($srid, 1+strpos($srid, ':'));
     }
     $set->transform($srid);
-    $behavior = isset($map->data['behaviors'][$settings['behavior']]) ?
-        $map->data['behaviors'][$settings['behavior']] : array();
+    
+    // Set up drawing tool.
+    $behavior = array();
+    if(isset($map->data['behaviors'][$settings['behavior']])){
+      // Use setting of map configuration (adjustable by user).
+      $behavior = $map->data['behaviors'][$settings['behavior']];
+    } else if($settings['behavior']==='openlayers_behavior_ole'){
+      // Apply default settings for OLE.
+      $behavior = array (
+        'processing_controls' => array (
+          'MergeFeature' => 'MergeFeature',
+          'SplitFeature' => 'SplitFeature',
+          'DeleteFeature' => 'DeleteFeature',
+        ),
+        'editing_controls' => array (
+          'DragFeature' => 'DragFeature',
+          'DrawHole' => 'DrawHole',
+          'ModifyFeature' => 'ModifyFeature',
+        ),
+        'other_controls' => array (
+          'Navigation' => 'Navigation',
+          'SnappingSettings' => 'SnappingSettings',
+        ),
+      );
+    }
 
     $textarea_id = $field['field_name'] . '_wkt' . $delta;
     $map->data['behaviors'][$settings['behavior']] = array_merge($behavior, array(
