@@ -13,7 +13,7 @@ class PostgisGeometryException extends Exception {
  * warpper arround wkt strings
  * converts EWKT to WKT
  */
-class Wkt {
+class postgis_Wkt {
   private $wkt, $srid;
 
   function __construct($wkt) {
@@ -202,7 +202,7 @@ class PostgisGeometrySet {
       return;
     }
 
-    $wkt = new Wkt($wktString);
+    $wkt = new postgis_Wkt($wktString);
     // Return WKT from (maybe) EWKT and add GEOMETRYCOLLECTION if missing for OpenLayers compability.
     $wktString = $wkt->getCollectionWktString();
     $wktSrid = $this->srid;
@@ -381,7 +381,7 @@ class PostgisGeometry {
 
     // check if the wkt is an EWKT string. if it is, use the srid
     // convert the ewkt to wkt
-    $wktObj = new Wkt($wkt);
+    $wktObj = new postgis_Wkt($wkt);
     $this->wkt = $wktObj->getWktString();
     if ($wktObj->hasSrid()) {
       $this->srid = $wktObj->getSrid();
