@@ -199,7 +199,7 @@ function postgis_field_update_field($field, $prior_field, $has_data) {
         $prefix_table = $prefix . $table;
       }
 
-      foreach ($columns as $field => $column) {
+      foreach ($columns as $field_type => $column) {
 
         db_drop_field($table, $column);
 
@@ -215,6 +215,38 @@ function postgis_field_update_field($field, $prior_field, $has_data) {
         );
 
         db_query('CREATE INDEX ' . $table . '_' . $column . '_idx ON {' . $table . '} USING GIST ( ' . $column . ' )');
+      }
+    }
+  }
+
+  // Recreate GeoServer PostGIS field views.
+  if (module_exists('geoserver')) {
+    $layers = geoserver_layers_load();
+    foreach($layers as $layer) {
+      $source = $layer->data['source'];
+      if ($layer->data['type'] === 'geoserver_layer_type_postgis_field' && 
+          substr($source, strrpos($source, '.')+1) === $field['field_name']) {
+        $layer->data['options']['srid'] = $srid;
+        $layer->save();
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_field_update_forbid().
+ *
+ * Drop GeoServer PostGIS field views, because they depend on the PostGIS field.
+ *
+ */
+function postgis_field_update_forbid($field, $prior_field, $has_data) {
+  if (module_exists('geoserver')) {
+    $layers = geoserver_layers_load();
+    foreach($layers as $layer) {
+      $source = $layer->data['source'];
+      if ($layer->data['type'] === 'geoserver_layer_type_postgis_field' && 
+          substr($source, strrpos($source, '.')+1) === $field['field_name']) {
+        db_query('DROP VIEW IF EXISTS {' . $layer->data['options']['sql_name'] . '}');
       }
     }
   }
