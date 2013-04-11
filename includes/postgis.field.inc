@@ -145,25 +145,14 @@ function postgis_field_presave($entity_type, $entity, $field, $instance, $langco
   }
 }
 
-
 /**
- * Implements hook_field_update_field().
- *
  * Keep table "geometry_columns" up to date.
- *
  */
-function postgis_field_update_field($field, $prior_field, $has_data) {
+function postgis_field_add_geometry_column($field) {
 
   // check if the field to be updated is really a postgis field
-  // as this function get called when ANY field gets updated
   $fieldtype = empty($field['type']) ? NULL : $field['type'];
   if ($fieldtype != 'postgis') {
-    return;
-  }
-
-  if($has_data) {
-    watchdog('postgis', t('PostGIS fields containing data can not be updated.'),
-            array(), WATCHDOG_WARNING);
     return;
   }
 
@@ -180,7 +169,6 @@ function postgis_field_update_field($field, $prior_field, $has_data) {
             array(), WATCHDOG_ERROR);
     return;
   }
-
 
   $storage = field_sql_storage_field_storage_details($field);
   $connection = Database::getConnection();
@@ -218,6 +206,31 @@ function postgis_field_update_field($field, $prior_field, $has_data) {
       }
     }
   }
+}
+
+/**
+ * Implements hook_field_create_field().
+ *
+ * Keep table "geometry_columns" up to date.
+ */
+function postgis_field_create_field($field) {
+  postgis_field_add_geometry_column($field);
+}
+
+/**
+ * Implements hook_field_update_field().
+ *
+ * Keep table "geometry_columns" up to date.
+ */
+function postgis_field_update_field($field, $prior_field, $has_data) {
+
+  if($has_data && $field['type'] === 'postgis') {
+    watchdog('postgis', t('PostGIS fields containing data can not be updated.'),
+            array(), WATCHDOG_WARNING);
+    return;
+  }
+
+  postgis_field_add_geometry_column($field);
 
   // Recreate GeoServer PostGIS field views.
   if (module_exists('geoserver')) {
