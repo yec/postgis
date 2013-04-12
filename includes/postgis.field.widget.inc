@@ -158,7 +158,6 @@ function postgis_field_widget_form(&$form, &$form_state, $field, $instance, $lan
     $textarea_id = $field['field_name'] . '_wkt' . $delta;
     $map->data['behaviors'][$settings['behavior']] = array_merge($behavior, array(
       'element_id'    => $textarea_id,
-      'srid'          => $field['settings']['srid'],
       'feature_types' => $types,
       // Drupal's unlimited value of -1 is not known to OpenLayers
       // and thus needs to be converted to NULL.
