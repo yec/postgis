@@ -217,12 +217,12 @@ class PostgisGeometrySet {
         // For example if OpenLayers sends a point in a GeometryCollection,
         // the following query would transfer it to a point in a MultiPoint.
         // This is done of type-compability with the selection geometry type.
-        $wkt = db_query("SELECT ST_AsText(ST_Multi(ST_Collect(a.geom))) AS wkt
+        $wktMulti = db_query("SELECT ST_AsText(ST_Multi(ST_Collect(a.geom))) AS wkt
           FROM (SELECT (ST_Dump(ST_GeomFromText(:wkt))).geom as geom) AS a",
           array(':wkt' => $wktString))->fetchField();
 
         $geometry = new PostgisGeometry($this->type, $wktSrid);
-        $geometry->fromText($wktString);
+        $geometry->fromText($wktMulti);
         $this->add($geometry);
 
       }
@@ -350,6 +350,7 @@ class PostgisGeometrySet {
     foreach ($this->geometries as $geometry) {
       $geometry->transform($srid);
     }
+    $this->srid = $srid;
   }
 }
 
