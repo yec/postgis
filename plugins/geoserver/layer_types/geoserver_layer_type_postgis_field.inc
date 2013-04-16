@@ -201,7 +201,7 @@ class geoserver_layer_type_postgis_field extends geoserver_layer_type_feature_ty
   protected function get_sql($entity_type, $bundle_name, $field_name, $name) {
     $sql = array(
       'select' => array("DROP VIEW IF EXISTS $name;
-CREATE VIEW $name AS SELECT $entity_type.nid as id, $entity_type.nid, $entity_type.title as name, field_data_$field_name.delta, field_data_$field_name.{$field_name}_geometry"),
+CREATE VIEW $name AS SELECT $entity_type.nid AS id, $entity_type.nid, $entity_type.title AS name, field_data_$field_name.delta, field_data_$field_name.{$field_name}_geometry"),
       'from' => array("FROM $prefix$entity_type LEFT JOIN field_data_$field_name ON node.nid = field_data_$field_name.entity_id"),
       'where' => array("WHERE $entity_type.type = '$bundle_name' and $entity_type.status = 1 and field_data_$field_name.deleted = 0"),
       'rules' => array(
@@ -224,6 +224,9 @@ CREATE VIEW $name AS SELECT $entity_type.nid as id, $entity_type.nid, $entity_ty
       if ($name != $field_name && $field['cardinality'] === '1') {
         foreach ($field['storage']['details']['sql']['FIELD_LOAD_CURRENT'] as $table => $table_fields) {
           foreach ($table_fields as $table_field) {
+            if ($table_field === 'body_value') {
+              $table_field .= ' AS description';
+            }
             $sql['select'][] = $table_field;
           }
           $sql['from'][] = "LEFT JOIN $prefix$table ON $entity_type.nid = $table.entity_id";
