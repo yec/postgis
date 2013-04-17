@@ -199,21 +199,23 @@ class geoserver_layer_type_postgis_field extends geoserver_layer_type_feature_ty
    * Get layer SQL definition.
    */
   protected function get_sql($entity_type, $bundle_name, $field_name, $name) {
+    $prefix = Database::getConnection()->tablePrefix();
+    $rule_name = str_replace('.', '_', $name);
     $sql = array(
       'select' => array("DROP VIEW IF EXISTS $name;
 CREATE VIEW $name AS SELECT $entity_type.nid AS id, $entity_type.nid, $entity_type.title AS name, field_data_$field_name.delta, field_data_$field_name.{$field_name}_geometry"),
-      'from' => array("FROM $prefix$entity_type LEFT JOIN field_data_$field_name ON node.nid = field_data_$field_name.entity_id"),
+      'from' => array("FROM $prefix$entity_type LEFT JOIN {$prefix}field_data_$field_name ON node.nid = field_data_$field_name.entity_id"),
       'where' => array("WHERE $entity_type.type = '$bundle_name' and $entity_type.status = 1 and field_data_$field_name.deleted = 0"),
       'rules' => array(
-        "CREATE OR REPLACE RULE ${name}_update AS ON UPDATE TO $name DO INSTEAD
-  UPDATE field_data_$field_name SET ${field_name}_geometry = NEW.${field_name}_geometry WHERE entity_id = NEW.id;",
-        "CREATE OR REPLACE RULE ${name}_insert AS ON INSERT TO ${name} DO INSTEAD (
-    INSERT INTO field_data_$field_name VALUES ('node', '$bundle_name', 0, nextval('node_nid_seq'), currval('node_nid_seq'), 'und', 0, NEW.${field_name}_geometry);
-    INSERT INTO node VALUES (currval('node_nid_seq'), currval('node_nid_seq'), '$bundle_name', 'und', '', 0, 1, extract(epoch from now())::int, extract(epoch from now())::int, 0, 0, 0, 0, 0);
-    INSERT INTO node_revision VALUES (currval('node_nid_seq'), currval('node_nid_seq'), 0, '', '', extract(epoch from now())::int, 1, 0, 0, 0);
+        "CREATE OR REPLACE RULE ${rule_name}_update AS ON UPDATE TO $name DO INSTEAD
+  UPDATE {$prefix}field_data_$field_name SET ${field_name}_geometry = NEW.${field_name}_geometry WHERE entity_id = NEW.id;",
+        "CREATE OR REPLACE RULE ${rule_name}_insert AS ON INSERT TO ${name} DO INSTEAD (
+    INSERT INTO {$prefix}field_data_$field_name VALUES ('node', '$bundle_name', 0, nextval('{$prefix}node_nid_seq'), currval('{$prefix}node_nid_seq'), 'und', 0, NEW.${field_name}_geometry);
+    INSERT INTO {$prefix}node VALUES (currval('{$prefix}node_nid_seq'), currval('{$prefix}node_nid_seq'), '$bundle_name', 'und', '', 0, 1, extract(epoch from now())::int, extract(epoch from now())::int, 0, 0, 0, 0, 0);
+    INSERT INTO {$prefix}node_revision VALUES (currval('{$prefix}node_nid_seq'), currval('{$prefix}node_nid_seq'), 0, '', '', extract(epoch from now())::int, 1, 0, 0, 0);
   );",
-        "CREATE OR REPLACE RULE ${name}_delete AS ON DELETE TO ${name} DO INSTEAD
-  DELETE FROM field_data_$field_name  WHERE entity_id = OLD.id and delta = OLD.delta;",
+        "CREATE OR REPLACE RULE ${rule_name}_delete AS ON DELETE TO ${name} DO INSTEAD
+  DELETE FROM {$prefix}field_data_$field_name  WHERE entity_id = OLD.id and delta = OLD.delta;",
       ),
     );
 
