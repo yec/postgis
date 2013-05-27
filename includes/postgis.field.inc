@@ -239,7 +239,7 @@ function postgis_field_update_field($field, $prior_field, $has_data) {
       $source = $layer->data['source'];
       if ($layer->data['type'] === 'geoserver_layer_type_postgis_field' && 
           substr($source, strrpos($source, '.')+1) === $field['field_name']) {
-        $layer->data['options']['srid'] = $srid;
+        $layer->data['options']['srid'] = $field['settings']['srid'];
         $layer->save();
       }
     }
