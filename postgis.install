@@ -46,6 +46,7 @@ function postgis_requirements($phase) {
     case 'update':
     case 'runtime':
       // Check if PostGIS is installed.
+      drupal_load('module', 'postgis');
       $version = postgis_version();
       if (empty($version)) {
         $description_extension = $t('Unable to determinate version of PostGIS installation.');
