@@ -122,7 +122,7 @@ function postgis_field_presave($entity_type, $entity, $field, $instance, $langco
       $set->fromText($item['wkt']);
     }
     else {
-      $set->fromGeometry($item);
+      $set->fromGeometry(array($item));
     }
   }
 
