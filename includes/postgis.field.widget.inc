@@ -167,7 +167,7 @@ function postgis_field_widget_form(&$form, &$form_state, $field, $instance, $lan
     $element[$delta]['map'] = array(
       '#title' => $instance['label'],
       '#type' => 'item',
-      '#markup' => '<div class="form-item" style="display:block">' . openlayers_render_map($map->data) . '</div>',
+      '#markup' => openlayers_render_map($map->data),
       '#description' => $element['#description'],
     );
 
