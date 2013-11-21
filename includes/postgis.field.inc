@@ -224,6 +224,13 @@ function postgis_field_create_field($field) {
  */
 function postgis_field_update_field($field, $prior_field, $has_data) {
 
+  if($has_data && $field['type'] === 'postgis') {
+    watchdog('postgis', t('PostGIS fields containing data can not be updated.'),
+            array(), WATCHDOG_WARNING);
+  } elseif ($field['type'] === 'postgis') {
+    postgis_field_add_geometry_column($field);
+  }
+
   // Recreate GeoServer PostGIS field views.
   if (module_exists('geoserver')) {
     $layers = geoserver_layers_load();
@@ -237,14 +244,6 @@ function postgis_field_update_field($field, $prior_field, $has_data) {
       }
     }
   }
-
-  if($has_data && $field['type'] === 'postgis') {
-    watchdog('postgis', t('PostGIS fields containing data can not be updated.'),
-            array(), WATCHDOG_WARNING);
-    return;
-  }
-
-  postgis_field_add_geometry_column($field);
 }
 
 /**
