@@ -224,6 +224,20 @@ function postgis_field_create_field($field) {
  */
 function postgis_field_update_field($field, $prior_field, $has_data) {
 
+  // Recreate GeoServer PostGIS field views.
+  if (module_exists('geoserver')) {
+    $layers = geoserver_layers_load();
+    foreach($layers as $layer) {
+      $source = $layer->data['source'];
+      if (substr($source, strrpos($source, '.')+1) === $field['field_name']) {
+        $layer->data['options']['srid'] = $field['settings']['srid'];
+      }
+      if ($layer->data['type'] === 'geoserver_layer_type_postgis_field') {
+        $layer->save();
+      }
+    }
+  }
+
   if($has_data && $field['type'] === 'postgis') {
     watchdog('postgis', t('PostGIS fields containing data can not be updated.'),
             array(), WATCHDOG_WARNING);
@@ -231,19 +245,6 @@ function postgis_field_update_field($field, $prior_field, $has_data) {
   }
 
   postgis_field_add_geometry_column($field);
-
-  // Recreate GeoServer PostGIS field views.
-  if (module_exists('geoserver')) {
-    $layers = geoserver_layers_load();
-    foreach($layers as $layer) {
-      $source = $layer->data['source'];
-      if ($layer->data['type'] === 'geoserver_layer_type_postgis_field' && 
-          substr($source, strrpos($source, '.')+1) === $field['field_name']) {
-        $layer->data['options']['srid'] = $field['settings']['srid'];
-        $layer->save();
-      }
-    }
-  }
 }
 
 /**
@@ -257,8 +258,7 @@ function postgis_field_update_forbid($field, $prior_field, $has_data) {
     $layers = geoserver_layers_load();
     foreach($layers as $layer) {
       $source = $layer->data['source'];
-      if ($layer->data['type'] === 'geoserver_layer_type_postgis_field' && 
-          substr($source, strrpos($source, '.')+1) === $field['field_name']) {
+      if ($layer->data['type'] === 'geoserver_layer_type_postgis_field') {
         db_query('DROP VIEW IF EXISTS {' . $layer->data['options']['sql_name'] . '}');
       }
     }
