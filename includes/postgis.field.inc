@@ -42,12 +42,22 @@ function postgis_property_info_callback(&$info, $entity_type, $field, $instance,
   $property['setter callback'] = 'postgis_field_property_set';
   $property['property info'] = array(
     'wkt' => array(
-      'type' => 'postgis',
+      'type' => 'string',
       'label' => t('Well-known text'),
       'getter callback' => 'postgis_property_get_wkt',
       'required' => TRUE,
     ),
   );
+
+  if (function_exists('geophp_load')) {
+    $property['property info']['json'] = array(
+      'type' => 'string',
+      'label' => t('JSON'),
+      'getter callback' => 'postgis_property_get_json',
+      'required' => TRUE,
+
+    );
+  }
 
   unset($property['query callback']);
 }
@@ -59,6 +69,17 @@ function postgis_property_get_wkt($item) {
   $geometry = new PostgisGeometry(NULL, NULL);
   $geometry->fromGeometry($item['geometry']);
   return $geometry->getText();
+}
+
+/**
+ * Callback for getting the json of the field
+ */
+function postgis_property_get_json($item) {
+  geophp_load();
+  $json = geoPHP::load($item['geometry']);
+  if (is_object($json)) {
+    return json_decode($json->out('json'));
+  }
 }
 
 /**
